@@ -1,8 +1,23 @@
-﻿#if IMGUI_DEBUG || UNITY_EDITOR
+﻿//
+// Project under MIT License https://github.com/TylkoDemon/dear-imgui-unity
+// 
+// A DearImgui implementation for Unity for URP, HDRP and Builtin that requires minimal setup.
+// Based on (forked from)https://github.com/realgamessoftware/dear-imgui-unity
+//  with uses ImGuiNET(https://github.com/ImGuiNET/ImGui.NET) and cimgui (https://github.com/cimgui/cimgui)
+//
+// For HDRP support, this package utilizes HDRP-UI-Camera-Stacking(https://github.com/alelievr/HDRP-UI-Camera-Stacking)
+//  to draw DearImgui on top of Unity UI.
+// HDRP support is limited for UI to be drawn in Camera or World Space.
+// Screen-Space Canvas is not yet supported.
+//
+
+#if IMGUI_DEBUG || UNITY_EDITOR
 using System;
 using Unity.Profiling;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 
 namespace ImGuiNET.Unity
 {
@@ -18,44 +33,54 @@ namespace ImGuiNET.Unity
         private ImGuiUnityContext _context;
         private IImGuiRenderer _renderer;
         private IImGuiPlatform _platform;
-        private bool _enableDocking = true;
-
-        public Camera camera;
-        [SerializeField] private RenderUtils.RenderType _rendererType = RenderUtils.RenderType.Mesh;
-        [SerializeField] private Platform.Type _platformType = Platform.Type.InputManager;
+        private SRPType _srpType;
+        
+        public static CommandBuffer Buffer { get; private set; }
+        
+        [Header("Systep")]
+        [FormerlySerializedAs("camera")]
+        [SerializeField] public new Camera camera = default!;
+        [FormerlySerializedAs("_renderFeature")] 
+        [SerializeField] private RenderImGuiFeature renderFeature = default!;
+        [FormerlySerializedAs("_rendererType")]
+        [SerializeField] private RenderUtils.RenderType rendererType = RenderUtils.RenderType.Mesh;
+        [FormerlySerializedAs("_platformType")]
+        [SerializeField] private Platform.Type platformType = Platform.Type.InputManager;
 
         [Header("Configuration")]
-        [SerializeField]
-        private IOConfig _initialConfiguration = default;
-        [SerializeField] private FontAtlasConfigAsset _fontAtlasConfiguration = null;
-        [SerializeField] private IniSettingsAsset _iniSettings = null;  // null: uses default imgui.ini file
-
+        [FormerlySerializedAs("_initialConfiguration")]
+        [SerializeField] private IOConfig initialConfiguration = default!;
+        [FormerlySerializedAs("_fontAtlasConfiguration")]
+        [SerializeField] private FontAtlasConfigAsset fontAtlasConfiguration = null!;
+        [FormerlySerializedAs("_iniSettings")]
+        [SerializeField] private IniSettingsAsset iniSettings = null!; // null: uses default imgui.ini file
+        [FormerlySerializedAs("_enableDocking")] 
+        [SerializeField] private bool enableDocking = true;
+        
         [Header("Customization")]
-        [SerializeField]
-        private ShaderResourcesAsset _shaders = null;
-        [SerializeField] private StyleAsset _style = null;
-        [SerializeField] private CursorShapesAsset _cursorShapes = null;
+        [FormerlySerializedAs("_shaders")]
+        [SerializeField] private ShaderResourcesAsset shaders = null!;
+        [FormerlySerializedAs("_style")] 
+        [SerializeField] private StyleAsset style = null!;
+        [FormerlySerializedAs("_cursorShapes")] 
+        [SerializeField] private CursorShapesAsset cursorShapes = null!;
 
         private const string CommandBufferTag = "DearImGui";
-        private static readonly ProfilerMarker s_prepareFramePerfMarker = new ProfilerMarker("DearImGui.PrepareFrame");
-        private static readonly ProfilerMarker s_layoutPerfMarker = new ProfilerMarker("DearImGui.Layout");
-        private static readonly ProfilerMarker s_drawListPerfMarker = new ProfilerMarker("DearImGui.RenderDrawLists");
+        private static readonly ProfilerMarker s_prepareFramePerfMarker = new("DearImGui.PrepareFrame");
+        private static readonly ProfilerMarker s_layoutPerfMarker = new("DearImGui.Layout");
+        private static readonly ProfilerMarker s_drawListPerfMarker = new("DearImGui.RenderDrawLists");
 
         private void Awake()
         {
             if (Instance != null)
             {
+                Debug.LogWarning($"A duplicate instance of {nameof(DearImGui)} was found.");
                 Destroy(gameObject);
                 return;
             }
             
             Instance = this;
             _context = ImGuiUn.CreateUnityContext();
-
-            if (_enableDocking)
-            {
-                ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-            }
             
             DontDestroyOnLoad(gameObject);
 
@@ -101,20 +126,46 @@ namespace ImGuiNET.Unity
             if (Instance != this)
                 return;
             
-            Debug.Log("Dear ImGui is enabled");
+            Debug.Log("Dear ImGui is enabled", this);
             
+            // Discover SRP type.
+            _srpType = RenderUtils.GetSRP();
+            
+            // Setup command buffer.
             Buffer = RenderUtils.GetCommandBuffer(CommandBufferTag);
+            switch (_srpType)
+            {
+                case SRPType.BuiltIn:
+                    Assert.IsNotNull(camera, "camera != null");
+                    camera.AddCommandBuffer(CameraEvent.AfterEverything, Buffer);
+                    break;
+                case SRPType.URP:
+                    Assert.IsNotNull(renderFeature, "renderFeature != null");
+                    renderFeature.commandBuffer = Buffer;
+                    break;
+                case SRPType.HDRP:
+                    // NOTE: HDRP consumes Buffer locally via OnAfterUI event. 
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            
             ImGuiUn.SetUnityContext(_context);
             ImGuiIOPtr io = ImGui.GetIO();
 
-            _initialConfiguration.ApplyTo(io);
-            _style?.ApplyTo(ImGui.GetStyle());
+            // Enable docking.
+            if (enableDocking)
+                io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+            
+            initialConfiguration.ApplyTo(io);
+            if (style != null)
+                style.ApplyTo(ImGui.GetStyle());
 
-            _context.textures.BuildFontAtlas(io, _fontAtlasConfiguration);
+            _context.textures.BuildFontAtlas(io, fontAtlasConfiguration);
             _context.textures.Initialize(io);
 
-            SetPlatform(Platform.Create(_platformType, _cursorShapes, _iniSettings), io);
-            SetRenderer(RenderUtils.Create(_rendererType, _shaders, _context.textures), io);
+            SetPlatform(Platform.Create(platformType, cursorShapes, iniSettings), io);
+            SetRenderer(RenderUtils.Create(rendererType, shaders, _context.textures), io);
             if (_platform == null) Fail(nameof(_platform));
             if (_renderer == null) Fail(nameof(_renderer));
 
@@ -143,6 +194,22 @@ namespace ImGuiNET.Unity
 
             _context.textures.Shutdown();
             _context.textures.DestroyFontAtlas(io);
+
+            switch (_srpType)
+            {
+                case SRPType.BuiltIn:
+                    if (camera != null)
+                        camera.RemoveCommandBuffer(CameraEvent.AfterEverything, Buffer);
+                    break;
+                case SRPType.URP:
+                    if (renderFeature != null)
+                        renderFeature.commandBuffer = null;
+                    break;
+                case SRPType.HDRP:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
             
             if (Buffer != null)
                 RenderUtils.ReleaseCommandBuffer(Buffer);
@@ -156,7 +223,7 @@ namespace ImGuiNET.Unity
 
         private void Reset()
         {
-            _initialConfiguration.SetDefaults();
+            initialConfiguration.SetDefaults();
         }
 
         public void Reload()
@@ -209,8 +276,6 @@ namespace ImGuiNET.Unity
             _platform = platform;
             _platform?.Initialize(io);
         }
-
-        public static CommandBuffer Buffer { get; private set; }
         
         public static DearImGui Instance { get; private set; }
     }
