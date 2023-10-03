@@ -2,9 +2,10 @@
     "name": "RG.ImGui.Unity",
     "rootNamespace": "",
     "references": [
-        "RG.ImGui",
+        "GUID:20ee313e09faec446a26ffa1daf5636b",
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.RenderPipelines.HighDefinition.Runtime"
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -23,8 +24,13 @@
         },
         {
             "name": "com.unity.render-pipelines.universal",
-            "expression": "7.0.0",
-            "define": "HAS_URP"
+            "expression": "",
+            "define": "USING_URP"
+        },
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "",
+            "define": "USING_HDRP"
         }
     ],
     "noEngineReferences": false

@@ -59,7 +59,13 @@ namespace ImGuiNET.Unity
             
             DontDestroyOnLoad(gameObject);
 
+#if USING_HDRP
+            // We use third-party library to inject our Dear Imgui content after rendering HDRP is done.
+            // NOTE: The nature of Imgui is to draw it on top of anything else.
+            //       In unity, drawing on top of built in unity UI is challenging.
+            //       Current approach renders our Dear Imgui after UI is done rendering, but your canvases can't be Screen-Space.
             HDCameraUI.OnAfterUIRendering += OnAfterUI;
+#endif
         }
 
         private void OnDestroy()
@@ -68,9 +74,12 @@ namespace ImGuiNET.Unity
             ImGuiUn.DestroyUnityContext(_context);
             Instance = null;
 
+#if USING_HDRP
             HDCameraUI.OnAfterUIRendering -= OnAfterUI;
+#endif
         }
 
+#if USING_HDRP
         private void OnAfterUI(ScriptableRenderContext ctx)
         {
             if (!isActiveAndEnabled || !gameObject.activeInHierarchy)
@@ -85,6 +94,7 @@ namespace ImGuiNET.Unity
             ctx.ExecuteCommandBuffer(cb);
             ctx.Submit();
         }
+#endif
 
         private void OnEnable()
         {
