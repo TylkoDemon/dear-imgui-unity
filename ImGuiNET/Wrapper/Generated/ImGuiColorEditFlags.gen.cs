@@ -13,6 +13,7 @@ namespace ImGuiNET
         NoLabel = 1 << 7,
         NoSidePreview = 1 << 8,
         NoDragDrop = 1 << 9,
+        NoBorder = 1 << 10,
         AlphaBar = 1 << 16,
         AlphaPreview = 1 << 17,
         AlphaPreviewHalf = 1 << 18,

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if IMGUI_DEBUG || UNITY_EDITOR
+using System;
 using UnityEngine;
 using ImGuiNET.Unity;
 
@@ -12,10 +13,23 @@ namespace ImGuiNET
 
     public static unsafe partial class ImGuiUn
     {
-        // layout
-        public static event Action Layout;    // global/default Layout event, each DearImGui instance also has a private one
-        internal static void DoLayout() => Layout?.Invoke();
+        public static event Action Before; 
+        public static event Action Layout; 
+        public static event Action After;  
+        internal static void DoLayout()
+        {
+            Before?.Invoke();
+            Layout?.Invoke();
+            After?.Invoke();
+        }
 
+        internal static void Reset()
+        {
+            Before = default;
+            Layout = default;
+            After = default;
+        }
+        
         // textures
         public static int GetTextureId(Texture texture) => s_currentUnityContext?.textures.GetTextureId(texture) ?? -1;
         internal static SpriteInfo GetSpriteInfo(Sprite sprite) => s_currentUnityContext?.textures.GetSpriteInfo(sprite) ?? null;
@@ -43,3 +57,4 @@ namespace ImGuiNET
         }
     }
 }
+#endif

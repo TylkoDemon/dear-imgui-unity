@@ -1,3 +1,4 @@
+#if IMGUI_DEBUG || UNITY_EDITOR
 using System;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -62,3 +63,4 @@ namespace ImGuiNET
         }
     }
 }
+#endif

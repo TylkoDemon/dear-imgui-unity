@@ -1,7 +1,7 @@
 using System;
+using UnityEngine;
 using System.Runtime.CompilerServices;
 using System.Text;
-using UnityEngine;
 
 namespace ImGuiNET
 {
@@ -113,6 +113,11 @@ namespace ImGuiNET
         public void SetFallbackChar(ushort c)
         {
             ImGuiNative.ImFont_SetFallbackChar(NativePtr, c);
+        }
+        public void SetGlyphVisible(ushort c, bool visible)
+        {
+            byte native_visible = visible ? (byte)1 : (byte)0;
+            ImGuiNative.ImFont_SetGlyphVisible(NativePtr, c, native_visible);
         }
     }
 }

@@ -1,3 +1,4 @@
+#if IMGUI_DEBUG || UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -146,3 +147,4 @@ namespace ImGuiNET.Unity
         }
     }
 }
+#endif

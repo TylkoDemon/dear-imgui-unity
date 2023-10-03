@@ -1,4 +1,5 @@
-﻿#if HAS_INPUTSYSTEM
+﻿#if IMGUI_DEBUG || UNITY_EDITOR
+#if HAS_INPUTSYSTEM
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -235,4 +236,5 @@ namespace ImGuiNET.Unity
         }
     }
 }
+#endif
 #endif

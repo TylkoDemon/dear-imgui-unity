@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if IMGUI_DEBUG || UNITY_EDITOR
+using System;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -168,3 +169,4 @@ namespace ImGuiNET.Unity
         }
     }
 }
+#endif

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if IMGUI_DEBUG || UNITY_EDITOR
+using UnityEngine;
 using UnityEngine.Rendering;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -191,3 +192,4 @@ namespace ImGuiNET.Unity
         }
     }
 }
+#endif

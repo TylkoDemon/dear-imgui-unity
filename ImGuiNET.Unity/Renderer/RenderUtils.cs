@@ -1,8 +1,6 @@
-﻿using UnityEngine.Assertions;
+﻿#if IMGUI_DEBUG || UNITY_EDITOR
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
-#if HAS_URP
-using UnityEngine.Rendering.Universal;
-#endif
 
 namespace ImGuiNET.Unity
 {
@@ -24,33 +22,16 @@ namespace ImGuiNET.Unity
                 default:                    return null;
             }
         }
-
-        public static bool IsUsingURP()
-        {
-            var currentRP = GraphicsSettings.currentRenderPipeline;
-#if HAS_URP
-            return currentRP is UniversalRenderPipelineAsset;
-#else
-            return false;
-#endif
-        }
-
+        
         public static CommandBuffer GetCommandBuffer(string name)
         {
-#if HAS_URP
-            return CommandBufferPool.Get(name);
-#else
             return new CommandBuffer { name = name };
-#endif
         }
 
         public static void ReleaseCommandBuffer(CommandBuffer cmd)
         {
-#if HAS_URP
-            CommandBufferPool.Release(cmd);
-#else
             cmd.Release();
-#endif
         }
     }
 }
+#endif

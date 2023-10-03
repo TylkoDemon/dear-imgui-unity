@@ -1,15 +1,16 @@
 {
     "name": "RG.ImGui.Unity.Editor",
+    "rootNamespace": "",
     "references": [
-        "GUID:20ee313e09faec446a26ffa1daf5636b",
-        "GUID:fed1b9451fde4474bbc2aad5bda39aca"
+        "RG.ImGui",
+        "RG.ImGui.Unity"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": true,
-    "overrideReferences": false,
+    "overrideReferences": true,
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],

@@ -1,35 +1,13 @@
 ﻿Shader "DearImGui/Mesh"
 {
-    // shader for Universal render pipeline
-    SubShader
-    {
-        Tags { "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" "PreviewType" = "Plane" }
-        LOD 100
-
-        Lighting Off
-        Cull Off ZWrite On ZTest Always
-        Blend SrcAlpha OneMinusSrcAlpha
-
-        Pass
-        {
-            Name "DEARIMGUI URP"
-
-            HLSLPROGRAM
-            #pragma vertex ImGuiPassVertex
-            #pragma fragment ImGuiPassFrag
-            #include "Packages/com.realgames.dear-imgui/Resources/Shaders/PassesUniversal.hlsl"
-            ENDHLSL
-        }
-    }
-
-    // shader for builtin rendering
+    // shader for builtin rendering and HDRP
     SubShader
     {
         Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" "PreviewType"="Plane" }
         LOD 100
 
         Lighting Off
-        Cull Off ZWrite On ZTest Always
+        Cull Off ZWrite False ZTest Always
         Blend SrcAlpha OneMinusSrcAlpha
 
         Pass
@@ -39,7 +17,7 @@
             CGPROGRAM
             #pragma vertex ImGuiPassVertex
             #pragma fragment ImGuiPassFrag
-            #include "Packages/com.realgames.dear-imgui/Resources/Shaders/PassesBuiltin.hlsl"
+            #include "PassesBuiltin.hlsl"
             ENDCG
         }
     }

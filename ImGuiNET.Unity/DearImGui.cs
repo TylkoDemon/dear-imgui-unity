@@ -1,6 +1,8 @@
-﻿using UnityEngine;
-using UnityEngine.Rendering;
+﻿#if IMGUI_DEBUG || UNITY_EDITOR
+using System;
 using Unity.Profiling;
+using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace ImGuiNET.Unity
 {
@@ -9,62 +11,89 @@ namespace ImGuiNET.Unity
     // (e.g. set the context, texture and font managers before calling Layout)
 
     /// <summary>
-    /// Dear ImGui integration into Unity
+    ///     Dear ImGui integration into Unity
     /// </summary>
-    public class DearImGui : MonoBehaviour
+    public sealed class DearImGui : MonoBehaviour
     {
-        ImGuiUnityContext _context;
-        IImGuiRenderer _renderer;
-        IImGuiPlatform _platform;
-        CommandBuffer _cmd;
-        bool _usingURP;
+        private ImGuiUnityContext _context;
+        private IImGuiRenderer _renderer;
+        private IImGuiPlatform _platform;
+        private bool _enableDocking = true;
 
-        public event System.Action Layout;  // Layout event for *this* ImGui instance
-        [SerializeField] bool _doGlobalLayout = true; // do global/default Layout event too
-
-        [SerializeField] Camera _camera = null;
-        [SerializeField] RenderImGuiFeature _renderFeature = null;
-
-        [SerializeField] RenderUtils.RenderType _rendererType = RenderUtils.RenderType.Mesh;
-        [SerializeField] Platform.Type _platformType = Platform.Type.InputManager;
+        public Camera camera;
+        [SerializeField] private RenderUtils.RenderType _rendererType = RenderUtils.RenderType.Mesh;
+        [SerializeField] private Platform.Type _platformType = Platform.Type.InputManager;
 
         [Header("Configuration")]
-        [SerializeField] IOConfig _initialConfiguration = default;
-        [SerializeField] FontAtlasConfigAsset _fontAtlasConfiguration = null;
-        [SerializeField] IniSettingsAsset _iniSettings = null;  // null: uses default imgui.ini file
+        [SerializeField]
+        private IOConfig _initialConfiguration = default;
+        [SerializeField] private FontAtlasConfigAsset _fontAtlasConfiguration = null;
+        [SerializeField] private IniSettingsAsset _iniSettings = null;  // null: uses default imgui.ini file
 
         [Header("Customization")]
-        [SerializeField] ShaderResourcesAsset _shaders = null;
-        [SerializeField] StyleAsset _style = null;
-        [SerializeField] CursorShapesAsset _cursorShapes = null;
+        [SerializeField]
+        private ShaderResourcesAsset _shaders = null;
+        [SerializeField] private StyleAsset _style = null;
+        [SerializeField] private CursorShapesAsset _cursorShapes = null;
 
-        const string CommandBufferTag = "DearImGui";
-        static readonly ProfilerMarker s_prepareFramePerfMarker = new ProfilerMarker("DearImGui.PrepareFrame");
-        static readonly ProfilerMarker s_layoutPerfMarker = new ProfilerMarker("DearImGui.Layout");
-        static readonly ProfilerMarker s_drawListPerfMarker = new ProfilerMarker("DearImGui.RenderDrawLists");
+        private const string CommandBufferTag = "DearImGui";
+        private static readonly ProfilerMarker s_prepareFramePerfMarker = new ProfilerMarker("DearImGui.PrepareFrame");
+        private static readonly ProfilerMarker s_layoutPerfMarker = new ProfilerMarker("DearImGui.Layout");
+        private static readonly ProfilerMarker s_drawListPerfMarker = new ProfilerMarker("DearImGui.RenderDrawLists");
 
-        void Awake()
+        private void Awake()
         {
+            if (Instance != null)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            
+            Instance = this;
             _context = ImGuiUn.CreateUnityContext();
+
+            if (_enableDocking)
+            {
+                ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+            }
+            
+            DontDestroyOnLoad(gameObject);
+
+            HDCameraUI.OnAfterUIRendering += OnAfterUI;
         }
 
-        void OnDestroy()
+        private void OnDestroy()
         {
+            if (Instance != this) return;
             ImGuiUn.DestroyUnityContext(_context);
+            Instance = null;
+
+            HDCameraUI.OnAfterUIRendering -= OnAfterUI;
         }
 
-        void OnEnable()
+        private void OnAfterUI(ScriptableRenderContext ctx)
         {
-            _usingURP = RenderUtils.IsUsingURP();
-            if (_camera == null) Fail(nameof(_camera));
-            if (_renderFeature == null && _usingURP) Fail(nameof(_renderFeature));
+            if (!isActiveAndEnabled || !gameObject.activeInHierarchy)
+            {
+                return;
+            }
+            
+            var cb = Buffer;
+            if (cb == null)
+                return;
+            
+            ctx.ExecuteCommandBuffer(cb);
+            ctx.Submit();
+        }
 
-            _cmd = RenderUtils.GetCommandBuffer(CommandBufferTag);
-            if (_usingURP)
-                _renderFeature.commandBuffer = _cmd;
-            else
-                _camera.AddCommandBuffer(CameraEvent.AfterEverything, _cmd);
-
+        private void OnEnable()
+        {
+            if (Instance != this)
+                return;
+            
+            Debug.Log("Dear ImGui is enabled");
+            
+            Buffer = RenderUtils.GetCommandBuffer(CommandBufferTag);
             ImGuiUn.SetUnityContext(_context);
             ImGuiIOPtr io = ImGui.GetIO();
 
@@ -83,12 +112,17 @@ namespace ImGuiNET.Unity
             {
                 OnDisable();
                 enabled = false;
-                throw new System.Exception($"Failed to start: {reason}");
+                throw new Exception($"Failed to start: {reason}");
             }
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
+            if (Instance != this)
+                return;
+            
+            Debug.Log("Dear ImGui is disabled");
+            
             ImGuiUn.SetUnityContext(_context);
             ImGuiIOPtr io = ImGui.GetIO();
 
@@ -99,26 +133,19 @@ namespace ImGuiNET.Unity
 
             _context.textures.Shutdown();
             _context.textures.DestroyFontAtlas(io);
-
-            if (_usingURP)
-            {
-                if (_renderFeature != null)
-                    _renderFeature.commandBuffer = null;
-            }
-            else
-            {
-                if (_camera != null)
-                    _camera.RemoveCommandBuffer(CameraEvent.AfterEverything, _cmd);
-            }
-
-            if (_cmd != null)
-                RenderUtils.ReleaseCommandBuffer(_cmd);
-            _cmd = null;
+            
+            if (Buffer != null)
+                RenderUtils.ReleaseCommandBuffer(Buffer);
+            Buffer = null;
         }
 
-        void Reset()
+        private void OnApplicationQuit()
         {
-            _camera = Camera.main;
+            ImGuiUn.Reset();
+        }
+
+        private void Reset()
+        {
             _initialConfiguration.SetDefaults();
         }
 
@@ -127,24 +154,25 @@ namespace ImGuiNET.Unity
             OnDisable();
             OnEnable();
         }
-
-        void Update()
+        
+        private void Update()
         {
+            if (Instance != this)
+                return;
+            
             ImGuiUn.SetUnityContext(_context);
             ImGuiIOPtr io = ImGui.GetIO();
-
+            
             s_prepareFramePerfMarker.Begin(this);
             _context.textures.PrepareFrame(io);
-            _platform.PrepareFrame(io, _camera.pixelRect);
+            _platform.PrepareFrame(io, camera.pixelRect);
             ImGui.NewFrame();
             s_prepareFramePerfMarker.End();
 
             s_layoutPerfMarker.Begin(this);
             try
             {
-                if (_doGlobalLayout)
-                    ImGuiUn.DoLayout();   // ImGuiUn.Layout: global handlers
-                Layout?.Invoke();     // this.Layout: handlers specific to this instance
+                ImGuiUn.DoLayout();
             }
             finally
             {
@@ -153,23 +181,28 @@ namespace ImGuiNET.Unity
             }
 
             s_drawListPerfMarker.Begin(this);
-            _cmd.Clear();
-            _renderer.RenderDrawLists(_cmd, ImGui.GetDrawData());
+            Buffer.Clear();
+            _renderer.RenderDrawLists(Buffer, ImGui.GetDrawData());
             s_drawListPerfMarker.End();
         }
 
-        void SetRenderer(IImGuiRenderer renderer, ImGuiIOPtr io)
+        private void SetRenderer(IImGuiRenderer renderer, ImGuiIOPtr io)
         {
             _renderer?.Shutdown(io);
             _renderer = renderer;
             _renderer?.Initialize(io);
         }
 
-        void SetPlatform(IImGuiPlatform platform, ImGuiIOPtr io)
+        private void SetPlatform(IImGuiPlatform platform, ImGuiIOPtr io)
         {
             _platform?.Shutdown(io);
             _platform = platform;
             _platform?.Initialize(io);
         }
+
+        public static CommandBuffer Buffer { get; private set; }
+        
+        public static DearImGui Instance { get; private set; }
     }
 }
+#endif

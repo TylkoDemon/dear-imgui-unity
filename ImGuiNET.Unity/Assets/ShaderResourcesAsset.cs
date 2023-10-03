@@ -1,9 +1,10 @@
-﻿using System;
+﻿#if IMGUI_DEBUG || UNITY_EDITOR
+using System;
 using UnityEngine;
 
 namespace ImGuiNET.Unity
 {
-    [CreateAssetMenu(menuName = "Dear ImGui/Shader Resources")]
+    [CreateAssetMenu(menuName = "Tools/Dear ImGui/Shader Resources")]
     sealed class ShaderResourcesAsset : ScriptableObject
     {
         [Serializable]
@@ -35,3 +36,4 @@ namespace ImGuiNET.Unity
         public PropertyNames propertyNames;
     }
 }
+#endif

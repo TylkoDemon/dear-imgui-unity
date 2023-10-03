@@ -1,8 +1,9 @@
-﻿using UnityEngine;
+﻿#if IMGUI_DEBUG || UNITY_EDITOR
+using UnityEngine;
 
 namespace ImGuiNET.Unity
 {
-    [CreateAssetMenu(menuName = "Dear ImGui/Style")]
+    [CreateAssetMenu(menuName = "Tools/Dear ImGui/Style")]
     sealed class StyleAsset : ScriptableObject
     {
         [Tooltip("Global alpha applies to everything in ImGui.")]
@@ -204,3 +205,4 @@ namespace ImGuiNET.Unity
         }
     }
 }
+#endif

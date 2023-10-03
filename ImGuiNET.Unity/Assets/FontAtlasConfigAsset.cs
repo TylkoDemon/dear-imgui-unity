@@ -1,8 +1,9 @@
+#if IMGUI_DEBUG || UNITY_EDITOR
 using UnityEngine;
 
 namespace ImGuiNET.Unity
 {
-    [CreateAssetMenu(menuName = "Dear ImGui/Font Atlas Configuration")]
+    [CreateAssetMenu(menuName = "Tools/Dear ImGui/Font Atlas Configuration")]
     sealed class FontAtlasConfigAsset : ScriptableObject
     {
         public FontRasterizerType Rasterizer;
@@ -16,3 +17,4 @@ namespace ImGuiNET.Unity
         FreeType,
     }
 }
+#endif

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if IMGUI_DEBUG || UNITY_EDITOR
+using UnityEngine;
 
 namespace ImGuiNET.Unity
 {
@@ -7,7 +8,7 @@ namespace ImGuiNET.Unity
     /// <summary>
     /// Used to store ImGui Ini settings in an asset instead of the default imgui.ini file
     /// </summary>
-    [CreateAssetMenu(menuName = "Dear ImGui/Ini Settings")]
+    [CreateAssetMenu(menuName = "Tools/Dear ImGui/Ini Settings")]
     sealed class IniSettingsAsset : ScriptableObject
     {
         [TextArea(3, 20)]
@@ -24,3 +25,4 @@ namespace ImGuiNET.Unity
         }
     }
 }
+#endif

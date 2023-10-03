@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if IMGUI_DEBUG || UNITY_EDITOR
+using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -45,9 +46,16 @@ namespace ImGuiNET.Unity
 
         public void Assign(ImGuiIOPtr io)
         {
+#if ENABLE_IL2CPP
+#else
             io.SetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(_setClipboardText);
             io.GetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(_getClipboardText);
-            io.ImeSetInputScreenPosFn = Marshal.GetFunctionPointerForDelegate(_imeSetInputScreenPos);
+#endif
+            
+            //io.ImeSetInputScreenPosFn = Marshal.GetFunctionPointerForDelegate(_imeSetInputScreenPos);
+            
+            
+
 #if IMGUI_FEATURE_CUSTOM_ASSERT
             io.SetBackendPlatformUserData<CustomAssertData>(new CustomAssertData
             {
@@ -61,7 +69,7 @@ namespace ImGuiNET.Unity
         {
             io.SetClipboardTextFn = IntPtr.Zero;
             io.GetClipboardTextFn = IntPtr.Zero;
-            io.ImeSetInputScreenPosFn = IntPtr.Zero;
+            //io.ImeSetInputScreenPosFn = IntPtr.Zero;
 #if IMGUI_FEATURE_CUSTOM_ASSERT
             io.SetBackendPlatformUserData<CustomAssertData>(null);
 #endif
@@ -116,3 +124,4 @@ namespace ImGuiNET.Unity
 #endif
     }
 }
+#endif

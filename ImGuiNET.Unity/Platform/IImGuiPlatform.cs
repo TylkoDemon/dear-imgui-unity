@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if IMGUI_DEBUG || UNITY_EDITOR
+using UnityEngine;
 
 namespace ImGuiNET.Unity
 {
@@ -12,3 +13,4 @@ namespace ImGuiNET.Unity
         void PrepareFrame(ImGuiIOPtr io, Rect displayRect);
     }
 }
+#endif

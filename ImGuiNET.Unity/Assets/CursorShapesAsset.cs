@@ -1,9 +1,10 @@
-﻿using System;
+﻿#if IMGUI_DEBUG || UNITY_EDITOR
+using System;
 using UnityEngine;
 
 namespace ImGuiNET.Unity
 {
-    [CreateAssetMenu(menuName = "Dear ImGui/Cursor Shapes")]
+    [CreateAssetMenu(menuName = "Tools/Dear ImGui/Cursor Shapes")]
     sealed class CursorShapesAsset : ScriptableObject
     {
         [Serializable]
@@ -61,3 +62,4 @@ namespace ImGuiNET.Unity
         }
     }
 }
+#endif

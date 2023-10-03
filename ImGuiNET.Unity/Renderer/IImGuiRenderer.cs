@@ -1,3 +1,4 @@
+#if IMGUI_DEBUG || UNITY_EDITOR
 using UnityEngine.Rendering;
 
 namespace ImGuiNET.Unity
@@ -12,3 +13,4 @@ namespace ImGuiNET.Unity
         void RenderDrawLists(CommandBuffer cmd, ImDrawDataPtr drawData);
     }
 }
+#endif
