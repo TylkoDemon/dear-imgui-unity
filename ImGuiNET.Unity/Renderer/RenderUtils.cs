@@ -3,6 +3,10 @@ using System;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
+#if USING_URP
+using UnityEngine.Rendering.Universal;
+#endif
+
 namespace ImGuiNET.Unity
 {
     public enum SRPType
