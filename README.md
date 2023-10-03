@@ -5,7 +5,7 @@ UPM package for the immediate mode GUI library, Dear ImGui (https://github.com/o
 ### Usage
 
 - [Add package](https://docs.unity3d.com/Manual/upm-ui-giturl.html) from git URL: [https://github.com/TylkoDemon/dear-imgui-unity.git](https://github.com/TylkoDemon/dear-imgui-unity.git) .
-- Drag a `ImGui Pass` prefab that can be found at `Packages/Dear ImGui/Resources/ImGui Pass.prefab` in to your Bootstrap/Entry scene (it invokes DontDestroyOnLoad on it self).
+- Drag an `ImGui Pass` prefab that can be found at `Packages/Dear ImGui/Resources/ImGui Pass.prefab` into your Bootstrap/Entry scene (it invokes DontDestroyOnLoad on itself).
 - When using the Universal Render Pipeline, add a `Render Im Gui Feature` render feature to the renderer asset. Assign it to the `render feature` field of the DearImGui component.
 - When using the HDRP, no extra setup is needed. Prefab is preconfigured to work just fine.
 - When using the Inbuilt Renderer, no extra setup is needed.
@@ -42,9 +42,11 @@ The development project for the package can be found at [https://github.com/Tylk
 
 Full setup with examples of this package can be found at [https://github.com/TylkoDemon/Dear-Imgui-For-Unity](https://github.com/TylkoDemon/Dear-Imgui-For-Unity)
 
+To draw IMGUI after UI in Camera-Space, this package utilizes HDRP-UI-Camera-Stacking which can be found at [https://github.com/alelievr/HDRP-UI-Camera-Stacking](https://github.com/alelievr/HDRP-UI-Camera-Stacking)
+
 ### Limitation
 
-Dear Imgui renders behind Screen-Space UI, with means that you should relay on Camera-Space canvases if you want to use this package right now.
+Dear Imgui renders behind Screen-Space UI, which means that you should rely on Camera-Space canvases if you want to use this package right now.
 
 # Unity Compatibility
 This fork of dear-imgui-unity is currently developed by using `Unity 2022.3.10f1`
