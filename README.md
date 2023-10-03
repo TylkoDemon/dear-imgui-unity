@@ -36,7 +36,7 @@ UPM package for the immediate mode GUI library, Dear ImGui (https://github.com/o
 
 ### Features
 
-Full Dear Imgui implementation (based on [ImGui.NET](https://github.com/ImGuiNET/ImGui.NET)), version 1.87.3 with Docking features.
+Full Dear Imgui implementation (based on [ImGui.NET](https://github.com/ImGuiNET/ImGui.NET)), version [1.88](https://github.com/ImGuiNET/ImGui.NET/commit/14c0bfcf3cba5d3ae467b57a3b06ff30a396f876) with Docking features.
 
 ### See Also
 
