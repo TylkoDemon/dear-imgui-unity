@@ -2,9 +2,8 @@
 using System;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using ImGuiNET.Unity;
 
-namespace ImGuiNET
+namespace ImGuiNET.Unity
 {
     // ImGui extra functionality related with Images
     public static partial class ImGuiUn

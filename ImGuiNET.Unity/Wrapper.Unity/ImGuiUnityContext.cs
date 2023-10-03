@@ -1,9 +1,8 @@
 ﻿#if IMGUI_DEBUG || UNITY_EDITOR
 using System;
 using UnityEngine;
-using ImGuiNET.Unity;
 
-namespace ImGuiNET
+namespace ImGuiNET.Unity
 {
     sealed class ImGuiUnityContext
     {

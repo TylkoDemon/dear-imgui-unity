@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace ImGuiNET
+namespace ImGuiNET.Unity
 {
     // ImGui extra functionality related with integrating with Unity
     public static partial class ImGuiUn

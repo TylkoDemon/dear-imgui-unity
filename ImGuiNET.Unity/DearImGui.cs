@@ -13,6 +13,7 @@
 
 #if IMGUI_DEBUG || UNITY_EDITOR
 using System;
+using JetBrains.Annotations;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -36,10 +37,11 @@ namespace ImGuiNET.Unity
         private SRPType _srpType;
         
         public static CommandBuffer Buffer { get; private set; }
-        
-        [Header("Systep")]
+
+        [Header("System")] 
+        [SerializeField] private Camera defaultCamera = default!;
         [FormerlySerializedAs("camera")]
-        [SerializeField] public new Camera camera = default!;
+        [SerializeField] private Camera hdrpCamera = default!;
         [FormerlySerializedAs("_renderFeature")] 
         [SerializeField] private RenderImGuiFeature renderFeature = default!;
         [FormerlySerializedAs("_rendererType")]
@@ -70,6 +72,26 @@ namespace ImGuiNET.Unity
         private static readonly ProfilerMarker s_layoutPerfMarker = new("DearImGui.Layout");
         private static readonly ProfilerMarker s_drawListPerfMarker = new("DearImGui.RenderDrawLists");
 
+        private bool _myCameraIsDirty;
+        
+        private Camera _myPreviousCamera;
+        private Camera _myCamera;
+        public Camera GetCamera()
+        {
+            return _myCamera;
+        }
+
+        public void SetCamera([NotNull] Camera newCamera)
+        {
+            if (newCamera == null) throw new ArgumentNullException(nameof(newCamera));
+            if (_myCamera == newCamera)
+                return;
+            
+            _myPreviousCamera = _myCamera;
+            _myCamera = newCamera;
+            _myCameraIsDirty = true;
+        }
+        
         private void Awake()
         {
             if (Instance != null)
@@ -127,17 +149,51 @@ namespace ImGuiNET.Unity
                 return;
             
             Debug.Log("Dear ImGui is enabled", this);
-            
+
             // Discover SRP type.
             _srpType = RenderUtils.GetSRP();
+            
+            // Validate if camera reference is present.
+            var cam = GetCamera();
+            if (cam == null)
+            {
+                // Camera is missing, try to discover it.
+                // In HDRP we want to use our exclusive camera that is part of our IMGUI Pass.
+                if (_srpType == SRPType.HDRP)
+                {
+                    Assert.IsNotNull(hdrpCamera, "hdrpCamera != null");
+                    cam = hdrpCamera;
+                    // NOTE: Reference to HDRPCamera is different due to HDRP-UI-Camera-Stacking and it's configuration.
+                    //       Unlike URP and BuiltIn, where you need to point at your camera, in HDRP, we point at exclusive camera.
+                    //       I've done it this way to avoid configuration issues when switching between SRP types.
+                }
+                else if (defaultCamera == null)
+                {
+                    cam = Camera.main;
+                    if (cam == null)
+                    {
+                        cam = FindObjectOfType<Camera>();
+                        if (cam == null)
+                        {
+                            Debug.LogError("No camera found, please assign a camera to the DearImGui component.");
+                            enabled = false;
+                            return;
+                        }
+                    }
+                }
+                else cam = defaultCamera;
+                SetCamera(cam);
+                _myCameraIsDirty = false;
+            }
+            
             
             // Setup command buffer.
             Buffer = RenderUtils.GetCommandBuffer(CommandBufferTag);
             switch (_srpType)
             {
                 case SRPType.BuiltIn:
-                    Assert.IsNotNull(camera, "camera != null");
-                    camera.AddCommandBuffer(CameraEvent.AfterEverything, Buffer);
+                    Assert.IsNotNull(cam, "camera != null");
+                    cam.AddCommandBuffer(CameraEvent.AfterEverything, Buffer);
                     break;
                 case SRPType.URP:
                     Assert.IsNotNull(renderFeature, "renderFeature != null");
@@ -195,11 +251,14 @@ namespace ImGuiNET.Unity
             _context.textures.Shutdown();
             _context.textures.DestroyFontAtlas(io);
 
+            var cam = GetCamera();
             switch (_srpType)
             {
                 case SRPType.BuiltIn:
-                    if (camera != null)
-                        camera.RemoveCommandBuffer(CameraEvent.AfterEverything, Buffer);
+                    if (_myPreviousCamera != null)
+                        _myPreviousCamera.RemoveCommandBuffer(CameraEvent.AfterEverything, Buffer);
+                    if (cam != null)
+                        cam.RemoveCommandBuffer(CameraEvent.AfterEverything, Buffer);
                     break;
                 case SRPType.URP:
                     if (renderFeature != null)
@@ -214,6 +273,9 @@ namespace ImGuiNET.Unity
             if (Buffer != null)
                 RenderUtils.ReleaseCommandBuffer(Buffer);
             Buffer = null;
+
+            _myPreviousCamera = defaultCamera;
+            _myCameraIsDirty = false;
         }
 
         private void OnApplicationQuit()
@@ -236,13 +298,23 @@ namespace ImGuiNET.Unity
         {
             if (Instance != this)
                 return;
+
+            if (_myCameraIsDirty)
+            {
+                _myCameraIsDirty = false;
+                Reload();
+                return;
+            }
+
+            var cam = GetCamera();
+            Assert.IsNotNull(cam, "Camera reference is missing!");
             
             ImGuiUn.SetUnityContext(_context);
             ImGuiIOPtr io = ImGui.GetIO();
             
             s_prepareFramePerfMarker.Begin(this);
             _context.textures.PrepareFrame(io);
-            _platform.PrepareFrame(io, camera.pixelRect);
+            _platform.PrepareFrame(io, cam.pixelRect);
             ImGui.NewFrame();
             s_prepareFramePerfMarker.End();
 
