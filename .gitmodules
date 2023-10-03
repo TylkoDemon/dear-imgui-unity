@@ -1,0 +1,3 @@
+[submodule "Plugins/com.alelievr.hdrp-ui-camera-stacking"]
+	path = Plugins/com.alelievr.hdrp-ui-camera-stacking
+	url = https://github.com/TylkoDemon/HDRP-UI-Camera-Stacking.git
