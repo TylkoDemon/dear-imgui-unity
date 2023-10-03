@@ -26,6 +26,27 @@ namespace ImGuiNET.Unity
     // It holds the necessary context and sets it up before any operation is done to ImGui.
     // (e.g. set the context, texture and font managers before calling Layout)
 
+    public enum RenderingMode
+    {
+        /// <summary>
+        ///     Standard mode where Dear ImGui is rendered directly to the camera.
+        /// </summary>
+        /// <remarks>
+        ///     In this mode, if you're using Screen-Space Canvas, Dear ImGui will be drawn behind it.
+        /// </remarks>
+        DirectlyToCamera = 0,
+        
+        /// <summary>
+        ///     Experimental mode where Dear ImGui is rendered into a RenderTexture that is then drawn by
+        ///      Screen-Space Canvas to combat issues with Screen-Space Canvas.
+        /// </summary>
+        /// <remarks>
+        ///     As this process involves few extra steps and finishing the render with unity's Canvas system,
+        ///      it is overall more performance heavy.
+        /// </remarks>
+        IntoRenderTexture = 1
+    }
+    
     /// <summary>
     ///     Dear ImGui integration into Unity
     /// </summary>
@@ -49,7 +70,8 @@ namespace ImGuiNET.Unity
         [FormerlySerializedAs("_platformType")]
         [SerializeField] private Platform.Type platformType = Platform.Type.InputManager;
 
-        [Header("Configuration")]
+        [Header("Configuration")] 
+        [SerializeField] private RenderingMode renderingMode = RenderingMode.DirectlyToCamera;
         [FormerlySerializedAs("_initialConfiguration")]
         [SerializeField] private IOConfig initialConfiguration = default!;
         [FormerlySerializedAs("_fontAtlasConfiguration")]
@@ -78,6 +100,8 @@ namespace ImGuiNET.Unity
         private Camera _myCamera;
         public Camera GetCamera()
         {
+            if (_myScreenSpaceCanvas != null)
+                return _myScreenSpaceCanvas.GetCamera();
             return _myCamera;
         }
 
@@ -92,6 +116,8 @@ namespace ImGuiNET.Unity
             _myCameraIsDirty = true;
         }
         
+        private ImGuiScreenSpaceCanvas _myScreenSpaceCanvas;
+        
         private void Awake()
         {
             if (Instance != null)
@@ -104,6 +130,7 @@ namespace ImGuiNET.Unity
             Instance = this;
             _context = ImGuiUn.CreateUnityContext();
             
+            gameObject.transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
 
 #if USING_HDRP
@@ -152,7 +179,48 @@ namespace ImGuiNET.Unity
 
             // Discover SRP type.
             _srpType = RenderUtils.GetSRP();
+
+            switch (renderingMode)
+            {
+                case RenderingMode.DirectlyToCamera:
+                    SetupDirectCamera();
+                    break;
+                case RenderingMode.IntoRenderTexture:
+                    SetupCanvas();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
             
+            ImGuiUn.SetUnityContext(_context);
+            ImGuiIOPtr io = ImGui.GetIO();
+
+            // Enable docking.
+            if (enableDocking)
+                io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+            
+            initialConfiguration.ApplyTo(io);
+            if (style != null)
+                style.ApplyTo(ImGui.GetStyle());
+
+            _context.textures.BuildFontAtlas(io, fontAtlasConfiguration);
+            _context.textures.Initialize(io);
+
+            SetPlatform(Platform.Create(platformType, cursorShapes, iniSettings), io);
+            SetRenderer(RenderUtils.Create(rendererType, shaders, _context.textures), io);
+            if (_platform == null) Fail(nameof(_platform));
+            if (_renderer == null) Fail(nameof(_renderer));
+
+            void Fail(string reason)
+            {
+                OnDisable();
+                enabled = false;
+                throw new Exception($"Failed to start: {reason}");
+            }
+        }
+
+        private void SetupDirectCamera()
+        {
             // Validate if camera reference is present.
             var cam = GetCamera();
             if (cam == null)
@@ -186,7 +254,6 @@ namespace ImGuiNET.Unity
                 _myCameraIsDirty = false;
             }
             
-            
             // Setup command buffer.
             Buffer = RenderUtils.GetCommandBuffer(CommandBufferTag);
             switch (_srpType)
@@ -204,35 +271,28 @@ namespace ImGuiNET.Unity
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
-            }
-            
-            ImGuiUn.SetUnityContext(_context);
-            ImGuiIOPtr io = ImGui.GetIO();
-
-            // Enable docking.
-            if (enableDocking)
-                io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-            
-            initialConfiguration.ApplyTo(io);
-            if (style != null)
-                style.ApplyTo(ImGui.GetStyle());
-
-            _context.textures.BuildFontAtlas(io, fontAtlasConfiguration);
-            _context.textures.Initialize(io);
-
-            SetPlatform(Platform.Create(platformType, cursorShapes, iniSettings), io);
-            SetRenderer(RenderUtils.Create(rendererType, shaders, _context.textures), io);
-            if (_platform == null) Fail(nameof(_platform));
-            if (_renderer == null) Fail(nameof(_renderer));
-
-            void Fail(string reason)
-            {
-                OnDisable();
-                enabled = false;
-                throw new Exception($"Failed to start: {reason}");
-            }
+            }   
         }
 
+        private void SetupCanvas()
+        {
+            // Setup command buffer.
+            Buffer = RenderUtils.GetCommandBuffer(CommandBufferTag);
+
+            if (_myScreenSpaceCanvas != null)
+                _myScreenSpaceCanvas.gameObject.SetActive(true);
+            else
+            {
+                // Spawn canvas.
+                var obj = new GameObject("ImGui Screen-Space Canvas")
+                {
+                    hideFlags = HideFlags.NotEditable | HideFlags.DontSave
+                };
+                obj.transform.SetParent(transform);
+                _myScreenSpaceCanvas = obj.AddComponent<ImGuiScreenSpaceCanvas>();
+            }
+        }
+        
         private void OnDisable()
         {
             if (Instance != this)
@@ -269,6 +329,9 @@ namespace ImGuiNET.Unity
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+            
+            if (_myScreenSpaceCanvas != null)
+                _myScreenSpaceCanvas.gameObject.SetActive(false);
             
             if (Buffer != null)
                 RenderUtils.ReleaseCommandBuffer(Buffer);

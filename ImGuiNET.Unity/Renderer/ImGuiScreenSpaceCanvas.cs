@@ -1,0 +1,144 @@
+﻿using System;
+using UnityEngine;
+using UnityEngine.Assertions;
+using UnityEngine.Rendering;
+using UnityEngine.UI;
+
+#if USING_URP
+using UnityEngine.Rendering.Universal;
+#endif
+
+namespace ImGuiNET.Unity
+{
+    internal sealed class ImGuiScreenSpaceCanvas : MonoBehaviour
+    {
+        private Camera myCamera;
+        private RenderTexture renderTexture;
+
+        private Canvas canvas;
+        
+        private void Start()
+        {
+            var myCameraObject = new GameObject("Screen-Space ImGui Camera")
+            {
+                hideFlags = HideFlags.NotEditable | HideFlags.DontSave
+            };
+            myCameraObject.transform.SetParent(transform);
+            
+            myCamera = myCameraObject.AddComponent<Camera>();
+            myCamera.enabled = false;
+            myCamera.clearFlags = CameraClearFlags.SolidColor;
+            myCamera.backgroundColor = Color.clear;
+            myCamera.cullingMask = 0;
+            myCamera.depth = float.MaxValue;
+            myCamera.orthographic = true;
+            myCamera.orthographicSize = 1f;
+            myCamera.nearClipPlane = 0.3f;
+            myCamera.farClipPlane = 1000f;
+            myCamera.useOcclusionCulling = false;
+
+            var srpType = RenderUtils.GetSRP();
+            switch (srpType)
+            {
+                case SRPType.BuiltIn:
+                    break;
+                case SRPType.URP:
+#if USING_URP
+                    // Initialize the camera for URP
+                    myCamera.GetUniversalAdditionalCameraData();
+#endif
+                    break;
+                case SRPType.HDRP:
+#if USING_HDRP
+                    // Initialize the camera for HDRP
+                    // TODO
+#endif
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            
+            // Create the render texture
+            myCamera.targetTexture = renderTexture = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32)
+            {
+                name = "ImGui Screen-Space Canvas",
+                hideFlags = HideFlags.NotEditable | HideFlags.DontSave
+            };
+
+            var buffer = DearImGui.Buffer;
+            Assert.IsNotNull(buffer, "buffer != null");
+            myCamera.AddCommandBuffer(CameraEvent.AfterEverything, buffer);
+            
+            // Create canvas.
+            var canvasObject = new GameObject("Screen-Space ImGui Canvas")
+            {
+                hideFlags = HideFlags.NotEditable | HideFlags.DontSave
+            };
+            canvasObject.transform.SetParent(transform);
+            
+            canvas = canvasObject.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = short.MaxValue - 1;
+            canvas.additionalShaderChannels = AdditionalCanvasShaderChannels.None;
+            
+            var canvasScaler = canvasObject.AddComponent<CanvasScaler>();
+            canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
+            
+            // Create RawImage.
+            var rawImageObject = new GameObject("Screen-Space ImGui RawImage")
+            {
+                hideFlags = HideFlags.NotEditable | HideFlags.DontSave
+            };
+            rawImageObject.transform.SetParent(canvasObject.transform);
+            rawImageObject.transform.localPosition = Vector3.zero;
+            rawImageObject.transform.localScale = Vector3.one;
+            
+            // Stretch the RawImage to fit the screen.
+            var rectTransform = rawImageObject.AddComponent<RectTransform>();
+            rectTransform.anchorMin = Vector2.zero;
+            rectTransform.anchorMax = Vector2.one;
+            rectTransform.sizeDelta = Vector2.zero;
+            rectTransform.anchoredPosition = Vector2.zero;
+            
+            var rawImage = rawImageObject.AddComponent<RawImage>();
+            rawImage.texture = renderTexture;
+            rawImage.color = Color.white;
+            rawImage.raycastTarget = false;
+        }
+
+        private void OnDestroy()
+        {
+            if (myCamera != null)
+                Destroy(myCamera.gameObject);
+            
+            if (renderTexture != null)
+                Destroy(renderTexture);
+
+            myCamera = default;
+            renderTexture = default;
+        }
+
+        private void Update()
+        {
+            Assert.IsNotNull(myCamera, "myCamera != null");
+            Assert.IsNotNull(renderTexture, "renderTexture != null");
+            
+            // Validate if render texture size is valid, if not, resize it
+            if (renderTexture.width != Screen.width || renderTexture.height != Screen.height)
+            {
+                renderTexture.Release();
+                renderTexture.width = Screen.width;
+                renderTexture.height = Screen.height;
+            }
+            else
+            {
+                myCamera.Render();
+            }
+        }
+
+        public Camera GetCamera()
+        {
+            return myCamera;
+        }
+    }
+}
