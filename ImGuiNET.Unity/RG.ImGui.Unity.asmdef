@@ -3,9 +3,10 @@
     "rootNamespace": "ImGuiNET.Unity",
     "references": [
         "GUID:20ee313e09faec446a26ffa1daf5636b",
-        "Unity.RenderPipelines.Core.Runtime",
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
         "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.RenderPipelines.Universal.Runtime"
+        "GUID:15fc0a57446b3144c949da3e2b9737a9",
+        "GUID:75469ad4d38634e559750d17036d5f7c"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
