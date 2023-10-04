@@ -200,6 +200,13 @@ namespace ImGuiNET.Unity
             if (myRenderer == null)
                 return;
 
+            DiscoverRenderFeature(myRenderer);
+#endif
+        }
+        
+#if USING_URP
+        public void DiscoverRenderFeature(ScriptableRenderer myRenderer)
+        {
             // our List<ScriptableRendererFeature> m_RendererFeatures field is private, so we need to use reflection to access it
             var rendererFeaturesField = typeof(ScriptableRenderer).GetField("m_RendererFeatures", BindingFlags.NonPublic | BindingFlags.Instance);
             if (rendererFeaturesField == null)
@@ -221,8 +228,8 @@ namespace ImGuiNET.Unity
             }
 
             Debug.LogError("Failed to discover render feature: RenderImGuiFeature is missing!", this);
-#endif
         }
+#endif
         
         private void OnEnable()
         {
