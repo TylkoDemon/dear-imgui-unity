@@ -8,7 +8,9 @@
 // For HDRP support, this package utilizes HDRP-UI-Camera-Stacking(https://github.com/alelievr/HDRP-UI-Camera-Stacking)
 //  to draw DearImgui on top of Unity UI.
 // HDRP support is limited for UI to be drawn in Camera or World Space.
-// Screen-Space Canvas is not yet supported.
+// On HDRP Screen-Space Canvas is not yet supported.
+//
+// In URP and Builtin, to draw DearImgui on top of Unity UI, you need to use IntoRenderTexture rendering mode.
 //
 
 #if IMGUI_DEBUG || UNITY_EDITOR
