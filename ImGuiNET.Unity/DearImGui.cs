@@ -15,12 +15,18 @@
 
 #if IMGUI_DEBUG || UNITY_EDITOR
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using JetBrains.Annotations;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
+
+#if USING_URP
+using UnityEngine.Rendering.Universal;
+#endif
 
 namespace ImGuiNET.Unity
 {
@@ -172,6 +178,52 @@ namespace ImGuiNET.Unity
         }
 #endif
 
+        /// <summary>
+        ///     Note attempts to find our render feature on currently active camera.
+        /// </summary>
+        public void DiscoverRenderFeature(Camera cam = null)
+        {
+            var srpType = RenderUtils.GetSRP();
+            if (srpType != SRPType.URP)
+                return;
+
+            if (cam == null)
+                cam = GetCamera();
+            Assert.IsNotNull(cam, "Failed to discover render feature: Camera reference is missing!");
+
+#if USING_URP
+            var urp = cam.GetUniversalAdditionalCameraData();
+            if (urp == null)
+                return;
+
+            var myRenderer = urp.scriptableRenderer;
+            if (myRenderer == null)
+                return;
+
+            // our List<ScriptableRendererFeature> m_RendererFeatures field is private, so we need to use reflection to access it
+            var rendererFeaturesField = typeof(ScriptableRenderer).GetField("m_RendererFeatures", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (rendererFeaturesField == null)
+                return;
+            
+            var rendererFeatures = (List<ScriptableRendererFeature>)rendererFeaturesField.GetValue(myRenderer);
+            if (rendererFeatures == null)
+                return;
+
+            for (var index0 = 0; index0 < rendererFeatures.Count; index0++)
+            {
+                var feature = rendererFeatures[index0];
+                if (feature is RenderImGuiFeature guiFeature)
+                {
+                    Debug.Log($"Found render feature: {guiFeature.name}", this);
+                    renderFeature = guiFeature;
+                    return;
+                }
+            }
+
+            Debug.LogError("Failed to discover render feature: RenderImGuiFeature is missing!", this);
+#endif
+        }
+        
         private void OnEnable()
         {
             if (Instance != this)
@@ -181,6 +233,10 @@ namespace ImGuiNET.Unity
 
             // Discover SRP type.
             _srpType = RenderUtils.GetSRP();
+            
+            // Discover render feature.
+            if (renderFeature == null)
+                DiscoverRenderFeature();
 
             switch (renderingMode)
             {

@@ -1,6 +1,6 @@
 {
     "name": "RG.ImGui.Unity",
-    "rootNamespace": "",
+    "rootNamespace": "ImGuiNET.Unity",
     "references": [
         "GUID:20ee313e09faec446a26ffa1daf5636b",
         "Unity.RenderPipelines.Core.Runtime",
