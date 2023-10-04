@@ -2,6 +2,8 @@
 
 UPM package for the immediate mode GUI library, Dear ImGui (https://github.com/ocornut/imgui).
 
+![image](https://github.com/TylkoDemon/dear-imgui-unity/assets/6078922/537000db-57f2-4886-bf64-3fccbff37666)
+
 ### Usage
 
 - [Add package](https://docs.unity3d.com/Manual/upm-ui-giturl.html) from git URL: [https://github.com/TylkoDemon/dear-imgui-unity.git](https://github.com/TylkoDemon/dear-imgui-unity.git) .
@@ -36,7 +38,7 @@ UPM package for the immediate mode GUI library, Dear ImGui (https://github.com/o
 
 ### Features
 
-Full Dear Imgui implementation (based on [ImGui.NET](https://github.com/ImGuiNET/ImGui.NET)), version [1.88](https://github.com/ImGuiNET/ImGui.NET/releases/tag/v1.88) with Docking features.
+Full Dear Imgui implementation (based on [ImGui.NET](https://github.com/ImGuiNET/ImGui.NET)), version 1.76 with Docking features.
 
 ### See Also
 
@@ -50,7 +52,8 @@ To draw IMGUI after UI in Camera-Space, this package utilizes HDRP-UI-Camera-Sta
 
 ### Limitation
 
-Dear Imgui renders behind Screen-Space UI, which means that you should rely on Camera-Space canvases if you want to use this package right now.
+To draw Dear Imgui after Screen-Space Overlay UI, you need to use RenderingMode.IntoRenderTexture mode, which actually uses another Screen-Space Overlay canvas set to maximum render order, and draws our Imgui by using Raw Image.
+  This feature has been tested only on URP.
 
 # Unity Compatibility
 This fork of dear-imgui-unity is currently developed by using `Unity 2022.3.10f1`
