@@ -1,10 +1,13 @@
 ﻿#if IMGUI_DEBUG || UNITY_EDITOR
 using System;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+
+#if USING_TMP
+using TMPro;
+#endif
 
 namespace ImGuiNET.Unity
 {
@@ -139,9 +142,15 @@ namespace ImGuiNET.Unity
                        || Input.GetKey(KeyCode.LeftWindows) || Input.GetKey(KeyCode.RightWindows);
 
             // discover if any input field is being currently selected (UGUI) so that we won't pop events from them
+            
+#if USING_TMP
             var isAnyInputSelected =  EventSystem.current != null && EventSystem.current.currentSelectedGameObject != null &&
                                       (EventSystem.current.currentSelectedGameObject.GetComponent<InputField>() != null ||
                                        EventSystem.current.currentSelectedGameObject.GetComponent<TMP_InputField>() != null);
+#else
+            var isAnyInputSelected =  EventSystem.current != null && EventSystem.current.currentSelectedGameObject != null &&
+                                      EventSystem.current.currentSelectedGameObject.GetComponent<InputField>() != null;
+#endif
                 
             // text input
             while (!isAnyInputSelected && Event.PopEvent(_e))
