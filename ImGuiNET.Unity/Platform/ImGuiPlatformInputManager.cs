@@ -1,7 +1,10 @@
 ﻿#if IMGUI_DEBUG || UNITY_EDITOR
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace ImGuiNET.Unity
 {
@@ -49,7 +52,8 @@ namespace ImGuiNET.Unity
             io.BackendFlags |= ImGuiBackendFlags.HasMouseCursors;               // can honor GetMouseCursor() values
             io.BackendFlags &= ~ImGuiBackendFlags.HasSetMousePos;               // can't honor io.WantSetMousePos requests
             // io.BackendFlags |= ImGuiBackendFlags.HasGamepad;                 // set by UpdateGamepad()
-
+        
+            
             _callbacks.Assign(io);                                              // assign platform callbacks
             io.ClipboardUserData = IntPtr.Zero;
 
@@ -134,8 +138,13 @@ namespace ImGuiNET.Unity
             io.KeySuper = Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand)
                        || Input.GetKey(KeyCode.LeftWindows) || Input.GetKey(KeyCode.RightWindows);
 
+            // discover if any input field is being currently selected (UGUI) so that we won't pop events from them
+            var isAnyInputSelected =  EventSystem.current != null && EventSystem.current.currentSelectedGameObject != null &&
+                                      (EventSystem.current.currentSelectedGameObject.GetComponent<InputField>() != null ||
+                                       EventSystem.current.currentSelectedGameObject.GetComponent<TMP_InputField>() != null);
+                
             // text input
-            while (Event.PopEvent(_e))
+            while (!isAnyInputSelected && Event.PopEvent(_e))
                 if (_e.rawType == EventType.KeyDown && _e.character != 0 && _e.character != '\n')
                     io.AddInputCharacter(_e.character);
         }
