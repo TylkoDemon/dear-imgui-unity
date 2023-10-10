@@ -133,8 +133,26 @@ namespace ImGuiNET.Unity
             }
             else
             {
-                myCamera.Render();
+                // myCamera.Render();
+                FixedRateRender();
             }
+        }
+
+        // NOTE: Imgui does not require high refresh rate experience, so we can save some performance on this.
+        // TODO: Expose option to change between 30/60/90/120/144 and unlimited.
+        private float lastTime;
+        private void FixedRateRender()
+        {
+            const int targetFps = 60;
+            const float targetDeltaTime = 1f / targetFps;
+            
+            var time = Time.unscaledTime;
+            var delta = time - lastTime;
+            if (delta < targetDeltaTime)
+                return;
+            
+            lastTime = time;
+            myCamera.Render();
         }
 
         public Camera GetCamera()
