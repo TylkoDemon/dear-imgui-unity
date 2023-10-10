@@ -121,6 +121,9 @@ namespace ImGuiNET.Unity
 
         private void Update()
         {
+            if (!DearImGui.Render)
+                return;
+            
             Assert.IsNotNull(myCamera, "myCamera != null");
             Assert.IsNotNull(renderTexture, "renderTexture != null");
             

@@ -424,6 +424,9 @@ namespace ImGuiNET.Unity
         
         private void Update()
         {
+            if (!Render)
+                return;
+            
             if (Instance != this)
                 return;
 
@@ -462,7 +465,7 @@ namespace ImGuiNET.Unity
             _renderer.RenderDrawLists(Buffer, ImGui.GetDrawData());
             s_drawListPerfMarker.End();
         }
-
+        
         private void SetRenderer(IImGuiRenderer renderer, ImGuiIOPtr io)
         {
             _renderer?.Shutdown(io);
@@ -476,6 +479,14 @@ namespace ImGuiNET.Unity
             _platform = platform;
             _platform?.Initialize(io);
         }
+
+        /// <summary>
+        ///     A flag that tell us if imgui should currently render.
+        /// </summary>
+        /// <remarks>
+        ///     You can use this flag to disable rendering in cases where your debuting tools are hidden anyway.
+        /// </remarks>
+        public static bool Render { get; set; } = true;
         
         public static DearImGui Instance { get; private set; }
     }
