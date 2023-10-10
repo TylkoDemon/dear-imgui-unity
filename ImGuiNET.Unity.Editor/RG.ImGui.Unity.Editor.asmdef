@@ -3,7 +3,9 @@
     "rootNamespace": "",
     "references": [
         "RG.ImGui",
-        "RG.ImGui.Unity"
+        "RG.ImGui.Unity",
+        "UnityEditor.UI",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"
