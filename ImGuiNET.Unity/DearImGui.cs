@@ -80,6 +80,7 @@ namespace ImGuiNET.Unity
 
         [Header("Configuration")] 
         [SerializeField] private RenderingMode renderingMode = RenderingMode.DirectlyToCamera;
+        [SerializeField] internal int toTextureRendererIndex = 0;
         [FormerlySerializedAs("_initialConfiguration")]
         [SerializeField] private IOConfig initialConfiguration = default!;
         [FormerlySerializedAs("_fontAtlasConfiguration")]

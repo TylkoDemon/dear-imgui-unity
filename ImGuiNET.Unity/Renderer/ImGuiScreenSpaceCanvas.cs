@@ -46,7 +46,8 @@ namespace ImGuiNET.Unity
                 case SRPType.URP:
 #if USING_URP
                     // Initialize the camera for URP
-                    myCamera.GetUniversalAdditionalCameraData();
+                    var data = myCamera.GetUniversalAdditionalCameraData();
+                    data.SetRenderer(DearImGui.Instance.toTextureRendererIndex);
 #endif
                     break;
                 case SRPType.HDRP:
