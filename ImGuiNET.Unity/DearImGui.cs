@@ -439,7 +439,12 @@ namespace ImGuiNET.Unity
             }
 
             var cam = GetCamera();
-            Assert.IsNotNull(cam, "Camera reference is missing!");
+            if (cam == null)
+            {
+                Debug.LogError("Camera reference is missing, please assign a camera to the DearImGui component.", this);
+                enabled = false;
+                return;
+            }
             
             ImGuiUn.SetUnityContext(_context);
             ImGuiIOPtr io = ImGui.GetIO();
