@@ -123,7 +123,10 @@ namespace ImGuiNET.Unity
         private void Update()
         {
             if (!DearImGui.Render)
+            {
+                canvas.enabled = false;
                 return;
+            }
             
             Assert.IsNotNull(myCamera, "myCamera != null");
             Assert.IsNotNull(renderTexture, "renderTexture != null");
@@ -157,6 +160,7 @@ namespace ImGuiNET.Unity
             
             lastTime = time;
             myCamera.Render();
+            canvas.enabled = true;
         }
 
         public Camera GetCamera()

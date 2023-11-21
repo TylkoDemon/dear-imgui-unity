@@ -425,6 +425,7 @@ namespace ImGuiNET.Unity
         
         private void Update()
         {
+            OnImguiUpdate?.Invoke();
             if (!Render)
                 return;
             
@@ -485,6 +486,8 @@ namespace ImGuiNET.Unity
             _platform = platform;
             _platform?.Initialize(io);
         }
+
+        public static event Action OnImguiUpdate;
 
         /// <summary>
         ///     A flag that tell us if imgui should currently render.
