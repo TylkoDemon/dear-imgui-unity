@@ -154,7 +154,8 @@ namespace ImGuiNET.Unity
         private void OnDestroy()
         {
             if (Instance != this) return;
-            ImGuiUn.DestroyUnityContext(_context);
+            if (_context != null)
+                ImGuiUn.DestroyUnityContext(_context);
             Instance = null;
 
 #if USING_HDRP
