@@ -2,6 +2,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
 
@@ -61,7 +62,7 @@ namespace ImGuiNET.Unity
             }
             
             // Create the render texture
-            myCamera.targetTexture = renderTexture = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32)
+            myCamera.targetTexture = renderTexture = new RenderTexture(Screen.width, Screen.height, 0, GraphicsFormat.R16G16B16A16_SFloat)
             {
                 name = "ImGui Screen-Space Canvas",
                 hideFlags = HideFlags.NotEditable | HideFlags.DontSave
