@@ -4,12 +4,12 @@ namespace ImGuiNET
     public enum ImGuiBackendFlags
     {
         None = 0,
-        HasGamepad = 1 << 0,
-        HasMouseCursors = 1 << 1,
-        HasSetMousePos = 1 << 2,
-        RendererHasVtxOffset = 1 << 3,
-        PlatformHasViewports = 1 << 10,
-        HasMouseHoveredViewport = 1 << 11,
-        RendererHasViewports = 1 << 12,
+        HasGamepad = 1,
+        HasMouseCursors = 2,
+        HasSetMousePos = 4,
+        RendererHasVtxOffset = 8,
+        PlatformHasViewports = 1024,
+        HasMouseHoveredViewport = 2048,
+        RendererHasViewports = 4096,
     }
 }

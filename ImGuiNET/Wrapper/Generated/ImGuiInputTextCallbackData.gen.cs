@@ -40,17 +40,21 @@ namespace ImGuiNET
         public ref int CursorPos => ref Unsafe.AsRef<int>(&NativePtr->CursorPos);
         public ref int SelectionStart => ref Unsafe.AsRef<int>(&NativePtr->SelectionStart);
         public ref int SelectionEnd => ref Unsafe.AsRef<int>(&NativePtr->SelectionEnd);
+        public void ClearSelection()
+        {
+            ImGuiNative.ImGuiInputTextCallbackData_ClearSelection((ImGuiInputTextCallbackData*)(NativePtr));
+        }
         public void DeleteChars(int pos, int bytes_count)
         {
-            ImGuiNative.ImGuiInputTextCallbackData_DeleteChars(NativePtr, pos, bytes_count);
+            ImGuiNative.ImGuiInputTextCallbackData_DeleteChars((ImGuiInputTextCallbackData*)(NativePtr), pos, bytes_count);
         }
         public void Destroy()
         {
-            ImGuiNative.ImGuiInputTextCallbackData_destroy(NativePtr);
+            ImGuiNative.ImGuiInputTextCallbackData_destroy((ImGuiInputTextCallbackData*)(NativePtr));
         }
         public bool HasSelection()
         {
-            byte ret = ImGuiNative.ImGuiInputTextCallbackData_HasSelection(NativePtr);
+            byte ret = ImGuiNative.ImGuiInputTextCallbackData_HasSelection((ImGuiInputTextCallbackData*)(NativePtr));
             return ret != 0;
         }
         public void InsertChars(int pos, string text)
@@ -74,11 +78,15 @@ namespace ImGuiNET
             }
             else { native_text = null; }
             byte* native_text_end = null;
-            ImGuiNative.ImGuiInputTextCallbackData_InsertChars(NativePtr, pos, native_text, native_text_end);
+            ImGuiNative.ImGuiInputTextCallbackData_InsertChars((ImGuiInputTextCallbackData*)(NativePtr), pos, native_text, native_text_end);
             if (text_byteCount > Util.StackAllocationSizeLimit)
             {
                 Util.Free(native_text);
             }
+        }
+        public void SelectAll()
+        {
+            ImGuiNative.ImGuiInputTextCallbackData_SelectAll((ImGuiInputTextCallbackData*)(NativePtr));
         }
     }
 }

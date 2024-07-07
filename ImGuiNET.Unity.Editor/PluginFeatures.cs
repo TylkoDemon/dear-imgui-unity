@@ -61,7 +61,7 @@ namespace ImGuiNET.Unity.Editor
             }
             catch (DllNotFoundException)
             {
-                Debug.LogWarning("[DearImGui] Could not check data layout, native plugin not loaded.");
+                Debug.LogWarning("[DearImGui] Could not check data layout, native plugin not loaded."); 
             }
         }
 

@@ -28,7 +28,7 @@ namespace ImGuiNET
         public ref float DpiScale => ref Unsafe.AsRef<float>(&NativePtr->DpiScale);
         public void Destroy()
         {
-            ImGuiNative.ImGuiPlatformMonitor_destroy(NativePtr);
+            ImGuiNative.ImGuiPlatformMonitor_destroy((ImGuiPlatformMonitor*)(NativePtr));
         }
     }
 }

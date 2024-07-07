@@ -37,7 +37,7 @@ namespace ImGuiNET.Unity
 
         internal static ImGuiUnityContext CreateUnityContext()
         {
-            return new ImGuiUnityContext
+            return new ImGuiUnityContext 
             {
                 state = ImGui.CreateContext(),
                 textures = new TextureManager(),
