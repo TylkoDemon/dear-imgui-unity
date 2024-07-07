@@ -38,7 +38,7 @@ UPM package for the immediate mode GUI library, Dear ImGui (https://github.com/o
 
 ### Features
 
-Full Dear Imgui implementation (based on [ImGui.NET](https://github.com/ImGuiNET/ImGui.NET)), version 1.76 with Docking features.
+Full Dear Imgui implementation (based on [ImGui.NET](https://github.com/ImGuiNET/ImGui.NET)), version 1.89.1 with Docking features.
 
 ### See Also
 
@@ -49,6 +49,9 @@ The development project for the package can be found at [https://github.com/Tylk
 Full setup with examples of this package can be found at [https://github.com/TylkoDemon/Dear-Imgui-For-Unity](https://github.com/TylkoDemon/Dear-Imgui-For-Unity)
 
 To draw IMGUI after UI in Camera-Space, this package utilizes HDRP-UI-Camera-Stacking which can be found at [https://github.com/alelievr/HDRP-UI-Camera-Stacking](https://github.com/alelievr/HDRP-UI-Camera-Stacking)
+ - HDRP Feature was not tested on newer versions of Unity such as 2022 or 2023 (Unity 6) and I do not have any plans to do so.
+ - The Screen-Space Overlay UI approach used for URP should work without issues tho.
+ - In the future, I plan to remove the HDRP-UI-Camera-Stacking package and relay just on RenderingMode.IntoRenderTexture mode for HDRP.
 
 ### Limitation
 
@@ -56,5 +59,5 @@ To draw Dear Imgui after Screen-Space Overlay UI, you need to use RenderingMode.
   This feature has been tested only on URP.
 
 # Unity Compatibility
-This fork of dear-imgui-unity is currently developed by using `Unity 2022.3.10f1`
+This fork of dear-imgui-unity is currently developed by using `Unity 2023.2.20f1`
 
