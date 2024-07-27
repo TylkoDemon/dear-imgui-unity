@@ -46,6 +46,7 @@ namespace ImGuiNET.Unity
 
         internal static void DestroyUnityContext(ImGuiUnityContext context)
         {
+            s_currentUnityContext = default;
             ImGui.DestroyContext(context.state);
         }
 

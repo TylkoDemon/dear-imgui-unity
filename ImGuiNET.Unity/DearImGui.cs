@@ -488,6 +488,13 @@ namespace ImGuiNET.Unity
             _platform?.Initialize(io);
         }
 
+        public static void DisposeStaticContext()
+        {
+            ImGuiUn.Reset();
+            OnImguiUpdate = null;
+            Render = true;
+        }
+        
         public static event Action OnImguiUpdate;
 
         /// <summary>
