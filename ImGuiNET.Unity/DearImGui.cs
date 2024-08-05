@@ -5,10 +5,6 @@
 // Based on (forked from)https://github.com/realgamessoftware/dear-imgui-unity
 //  with uses ImGuiNET(https://github.com/ImGuiNET/ImGui.NET) and cimgui (https://github.com/cimgui/cimgui)
 //
-// For HDRP support, this package utilizes HDRP-UI-Camera-Stacking(https://github.com/alelievr/HDRP-UI-Camera-Stacking)
-//  to draw DearImgui on top of Unity UI.
-// HDRP support is limited for UI to be drawn in Camera or World Space.
-// On HDRP Screen-Space Canvas is not yet supported.
 //
 // In URP and Builtin, to draw DearImgui on top of Unity UI, you need to use IntoRenderTexture rendering mode.
 //
@@ -141,14 +137,6 @@ namespace ImGuiNET.Unity
             
             gameObject.transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
-
-#if USING_HDRP
-            // We use third-party library to inject our Dear Imgui content after rendering HDRP is done.
-            // NOTE: The nature of Imgui is to draw it on top of anything else.
-            //       In unity, drawing on top of built in unity UI is challenging.
-            //       Current approach renders our Dear Imgui after UI is done rendering, but your canvases can't be Screen-Space.
-            HDCameraUI.OnAfterUIRendering += OnAfterUI;
-#endif
         }
 
         private void OnDestroy()
@@ -157,28 +145,7 @@ namespace ImGuiNET.Unity
             if (_context != null)
                 ImGuiUn.DestroyUnityContext(_context);
             Instance = null;
-
-#if USING_HDRP
-            HDCameraUI.OnAfterUIRendering -= OnAfterUI;
-#endif
         }
-
-#if USING_HDRP
-        private void OnAfterUI(ScriptableRenderContext ctx)
-        {
-            if (!isActiveAndEnabled || !gameObject.activeInHierarchy)
-            {
-                return;
-            }
-            
-            var cb = Buffer;
-            if (cb == null)
-                return;
-            
-            ctx.ExecuteCommandBuffer(cb);
-            ctx.Submit();
-        }
-#endif
 
         /// <summary>
         ///     Note attempts to find our render feature on currently active camera.

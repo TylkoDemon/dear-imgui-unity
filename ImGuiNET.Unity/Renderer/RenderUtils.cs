@@ -3,6 +3,10 @@ using System;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
+#if USING_HDRP
+using UnityEngine.Rendering.HighDefinition;
+#endif
+
 #if USING_URP
 using UnityEngine.Rendering.Universal;
 #endif
