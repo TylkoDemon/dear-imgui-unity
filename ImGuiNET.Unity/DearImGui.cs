@@ -64,9 +64,8 @@ namespace ImGuiNET.Unity
         public static CommandBuffer Buffer { get; private set; }
 
         [Header("System")] 
-        [SerializeField] private Camera defaultCamera = default!;
         [FormerlySerializedAs("camera")]
-        [SerializeField] private Camera hdrpCamera = default!;
+        [SerializeField] private Camera defaultCamera = default!;
         [FormerlySerializedAs("_renderFeature")] 
         [SerializeField] private RenderImGuiFeature renderFeature = default!;
         [FormerlySerializedAs("_rendererType")]
@@ -260,16 +259,7 @@ namespace ImGuiNET.Unity
             if (cam == null)
             {
                 // Camera is missing, try to discover it.
-                // In HDRP we want to use our exclusive camera that is part of our IMGUI Pass.
-                if (_srpType == SRPType.HDRP)
-                {
-                    Assert.IsNotNull(hdrpCamera, "hdrpCamera != null");
-                    cam = hdrpCamera;
-                    // NOTE: Reference to HDRPCamera is different due to HDRP-UI-Camera-Stacking and it's configuration.
-                    //       Unlike URP and BuiltIn, where you need to point at your camera, in HDRP, we point at exclusive camera.
-                    //       I've done it this way to avoid configuration issues when switching between SRP types.
-                }
-                else if (defaultCamera == null)
+                if (defaultCamera == null)
                 {
                     cam = Camera.main;
                     if (cam == null)
