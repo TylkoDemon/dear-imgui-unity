@@ -160,7 +160,7 @@ namespace ImGuiNET.Unity
             Assert.IsNotNull(cam, "Failed to discover render feature: Camera reference is missing!");
 
 #if USING_URP
-            var urp = cam.GetUniversalAdditionalCameraData();
+            UniversalAdditionalCameraData urp = cam.GetUniversalAdditionalCameraData();
             if (urp == null)
                 return;
 
