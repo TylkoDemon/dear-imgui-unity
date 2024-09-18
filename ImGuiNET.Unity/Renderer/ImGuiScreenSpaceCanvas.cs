@@ -1,4 +1,5 @@
 ﻿#if IMGUI_DEBUG || UNITY_EDITOR
+
 using System;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -23,7 +24,7 @@ namespace ImGuiNET.Unity
         {
             var myCameraObject = new GameObject("Screen-Space ImGui Camera")
             {
-                hideFlags = HideFlags.NotEditable | HideFlags.DontSave
+                hideFlags = HideFlags.DontSave
             };
             myCameraObject.transform.SetParent(transform);
             
@@ -65,8 +66,13 @@ namespace ImGuiNET.Unity
             myCamera.targetTexture = renderTexture = new RenderTexture(Screen.width, Screen.height, 0, GraphicsFormat.R16G16B16A16_SFloat)
             {
                 name = "ImGui Screen-Space Canvas",
-                hideFlags = HideFlags.NotEditable | HideFlags.DontSave
+                hideFlags = HideFlags.DontSave
             };
+            
+            var rt = RenderTexture.active;
+            RenderTexture.active = renderTexture;
+            GL.Clear(true, true, Color.clear);
+            RenderTexture.active = rt;
 
             var buffer = DearImGui.Buffer;
             Assert.IsNotNull(buffer, "buffer != null");
@@ -75,7 +81,7 @@ namespace ImGuiNET.Unity
             // Create canvas.
             var canvasObject = new GameObject("Screen-Space ImGui Canvas")
             {
-                hideFlags = HideFlags.NotEditable | HideFlags.DontSave
+                hideFlags = HideFlags.DontSave
             };
             canvasObject.transform.SetParent(transform);
             
@@ -90,7 +96,7 @@ namespace ImGuiNET.Unity
             // Create RawImage.
             var rawImageObject = new GameObject("Screen-Space ImGui RawImage")
             {
-                hideFlags = HideFlags.NotEditable | HideFlags.DontSave
+                hideFlags = HideFlags.DontSave
             };
             rawImageObject.transform.SetParent(canvasObject.transform);
             rawImageObject.transform.localPosition = Vector3.zero;
