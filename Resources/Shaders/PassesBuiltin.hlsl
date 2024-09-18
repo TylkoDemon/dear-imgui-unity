@@ -15,7 +15,9 @@ half4 unpack_color(uint c)
         (c >> 24) & 0xff
     ) / 255;
 #ifndef UNITY_COLORSPACE_GAMMA
+    const half a = color.a;
     color.rgb = GammaToLinearSpace(color.rgb);
+    color.a = a;
 #endif
     return color;
 }

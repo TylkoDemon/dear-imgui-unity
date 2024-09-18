@@ -19,7 +19,7 @@ half4 unpack_color(uint c)
         (c >> 24) & 0xff
     ) / 255;
 #ifndef UNITY_COLORSPACE_GAMMA
-    color.rgb = FastSRGBToLinear(color.rgb);
+    color.rgba = FastSRGBToLinear(color.rgba);
 #endif
     return color;
 }
