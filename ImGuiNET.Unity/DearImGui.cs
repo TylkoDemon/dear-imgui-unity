@@ -230,6 +230,26 @@ namespace ImGuiNET.Unity
                     throw new ArgumentOutOfRangeException();
             }
             
+            // Setup command buffer.
+            var cam = GetCamera();
+            Buffer = RenderUtils.GetCommandBuffer(CommandBufferTag);
+            switch (_srpType)
+            {
+                case SRPType.BuiltIn:
+                    Assert.IsNotNull(cam, "camera != null");
+                    cam.AddCommandBuffer(CameraEvent.AfterEverything, Buffer);
+                    break;
+                case SRPType.URP:
+                    Assert.IsNotNull(renderFeature, "renderFeature != null");
+                    renderFeature.commandBuffer = Buffer;
+                    break;
+                case SRPType.HDRP:
+                    // NOTE: HDRP consumes Buffer locally via OnAfterUI event. 
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }  
+            
             ImGuiUn.SetUnityContext(_context);
             ImGuiIOPtr io = ImGui.GetIO();
 
@@ -282,32 +302,10 @@ namespace ImGuiNET.Unity
                 SetCamera(cam);
                 _myCameraIsDirty = false;
             }
-            
-            // Setup command buffer.
-            Buffer = RenderUtils.GetCommandBuffer(CommandBufferTag);
-            switch (_srpType)
-            {
-                case SRPType.BuiltIn:
-                    Assert.IsNotNull(cam, "camera != null");
-                    cam.AddCommandBuffer(CameraEvent.AfterEverything, Buffer);
-                    break;
-                case SRPType.URP:
-                    Assert.IsNotNull(renderFeature, "renderFeature != null");
-                    renderFeature.commandBuffer = Buffer;
-                    break;
-                case SRPType.HDRP:
-                    // NOTE: HDRP consumes Buffer locally via OnAfterUI event. 
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }   
         }
 
         private void SetupCanvas()
         {
-            // Setup command buffer.
-            Buffer = RenderUtils.GetCommandBuffer(CommandBufferTag);
-
             if (_myScreenSpaceCanvas != null)
                 _myScreenSpaceCanvas.gameObject.SetActive(true);
             else

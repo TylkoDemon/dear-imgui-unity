@@ -15,7 +15,8 @@ namespace ImGuiNET.Unity
 
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
-                context.ExecuteCommandBuffer(cmd);
+                var buffer = cmd;
+                context.ExecuteCommandBuffer(buffer);
             }
         }
 
