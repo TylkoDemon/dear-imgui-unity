@@ -209,10 +209,9 @@ namespace ImGuiNET.Unity
             if (Instance != this)
                 return;
             
-            Debug.Log("Dear ImGui is enabled", this);
-
-            // Discover SRP type.
+            // Discover an SRP type.
             _srpType = RenderUtils.GetSRP();
+            Debug.Log($"Dear ImGui is enabled. SRP: {_srpType}", this);
             
             // Discover render feature.
             if (renderFeature == null)
