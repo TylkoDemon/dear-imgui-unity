@@ -457,7 +457,7 @@ namespace ImGuiNET.Unity
         public static event Action OnImguiUpdate;
 
         /// <summary>
-        ///     A flag that tell us if imgui should currently render.
+        ///     A flag that tells us if imgui should currently render.
         /// </summary>
         /// <remarks>
         ///     You can use this flag to disable rendering in cases where your debuting tools are hidden anyway.
