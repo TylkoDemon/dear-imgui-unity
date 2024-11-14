@@ -45,7 +45,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   defaultCamera: {fileID: 0}
-  hdrpCamera: {fileID: 0}
   renderFeature: {fileID: 0}
   rendererType: 0
   platformType: 0

@@ -46,7 +46,6 @@ MonoBehaviour:
   AntiAliasedLines: 1
   AntiAliasedFill: 1
   CurveTessellationTol: 1.25
-  CircleSegmentMaxError: 1.6
   Colors:
   - {r: 1, g: 1, b: 1, a: 1}
   - {r: 0.5, g: 0.5, b: 0.5, a: 1}
