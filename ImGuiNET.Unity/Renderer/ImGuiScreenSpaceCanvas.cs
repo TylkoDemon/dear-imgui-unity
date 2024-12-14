@@ -129,7 +129,7 @@ namespace ImGuiNET.Unity
 
         private void Update()
         {
-            if (!DearImGui.Render)
+            if (!DearImGui.ShouldRender())
             {
                 canvas.enabled = false;
                 return;

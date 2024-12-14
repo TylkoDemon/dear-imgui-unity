@@ -386,7 +386,7 @@ namespace ImGuiNET.Unity
         private void Update()
         {
             OnImguiUpdate?.Invoke();
-            if (!Render)
+            if (!ShouldRender())
                 return;
             
             if (Instance != this)
@@ -446,14 +446,71 @@ namespace ImGuiNET.Unity
             _platform = platform;
             _platform?.Initialize(io);
         }
-
+        
+        public static bool ShouldRender()
+        {
+            if (Render)
+                return true;
+            
+            bool anyRequest = false;
+            for (int index0 = 0; index0 < _drawRequests.Count; index0++)
+            {
+                if (_drawRequests[index0]())
+                {
+                    anyRequest = true;
+                    break;
+                }
+            }
+            return anyRequest;
+        }
+        
         public static void DisposeStaticContext()
         {
             ImGuiUn.Reset();
             OnImguiUpdate = null;
             Render = true;
         }
+
+        /// <summary>
+        ///     Adds a render source to the render list.
+        /// </summary>
+        /// <remarks>
+        ///     If there is no render sources left, imgui will stop rendering to save performance.
+        /// </remarks>
+        public static void SetRenderSource(bool state, string source)
+        {
+            if (state) AddRenderSource(source);
+            else RemoveRenderSource(source);
+        }
         
+        /// <summary>
+        ///     Adds a render source to the render list.
+        /// </summary>
+        public static void AddRenderSource(string source)
+        {
+            if (renderSources.Contains(source))
+                return;
+            renderSources.Add(source);
+            Render = true;
+        }
+        
+        /// <summary>
+        ///     Removes a source from the render list.
+        /// </summary>
+        /// <remarks>
+        ///     If there is no render sources left, imgui will stop rendering to save performance.
+        /// </remarks>
+        public static void RemoveRenderSource(string source)
+        {
+            if (!renderSources.Contains(source))
+                return;
+            renderSources.Remove(source);
+            Render = renderSources.Count > 0;
+        }
+        
+        /// <summary>
+        ///     Always invokes before the ImGui layout is done, even if <see cref="Render"/> is false.
+        /// </summary>
         public static event Action OnImguiUpdate;
 
         /// <summary>
@@ -462,7 +519,16 @@ namespace ImGuiNET.Unity
         /// <remarks>
         ///     You can use this flag to disable rendering in cases where your debuting tools are hidden anyway.
         /// </remarks>
-        public static bool Render { get; set; } = true;
+        public static bool Render { get; private set; } = false;
+        private static readonly List<string> renderSources = new List<string>();
+
+        public delegate bool DrawRequest();
+        private static readonly List<DrawRequest> _drawRequests = new List<DrawRequest>();
+        public static void AddDrawRequest([NotNull] DrawRequest request)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request)); 
+            _drawRequests.Add(request);
+        }
         
         public static DearImGui Instance { get; private set; }
     }
