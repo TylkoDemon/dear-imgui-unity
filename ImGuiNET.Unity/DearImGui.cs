@@ -75,7 +75,7 @@ namespace ImGuiNET.Unity
         [SerializeField] private Platform.Type platformType = Platform.Type.InputManager;
 
         [Header("Configuration")] 
-        [SerializeField] private RenderingMode renderingMode = RenderingMode.DirectlyToCamera;
+        [SerializeField] public RenderingMode renderingMode = RenderingMode.DirectlyToCamera;
         [SerializeField] internal int toTextureRendererIndex = 0;
         [FormerlySerializedAs("_initialConfiguration")]
         [SerializeField] private IOConfig initialConfiguration = default!;
