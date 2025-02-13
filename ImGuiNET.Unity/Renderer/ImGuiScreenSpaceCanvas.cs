@@ -20,7 +20,7 @@ namespace ImGuiNET.Unity
 
         private Canvas canvas;
         
-        private void Start()
+        public void Setup()
         {
             var myCameraObject = new GameObject("Screen-Space ImGui Camera")
             {

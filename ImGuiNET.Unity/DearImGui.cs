@@ -154,7 +154,10 @@ namespace ImGuiNET.Unity
         {
             var srpType = RenderUtils.GetSRP();
             if (srpType != SRPType.URP)
+            {
+                Debug.LogWarning($"Failed to discover render feature: SRP is not URP! SRP: {srpType}");
                 return;
+            }
 
             if (cam == null)
                 cam = GetCamera();
@@ -167,11 +170,17 @@ namespace ImGuiNET.Unity
 #if USING_URP
             UniversalAdditionalCameraData urp = cam.GetUniversalAdditionalCameraData();
             if (urp == null)
+            {
+                Debug.LogWarning("Failed to discover render feature: URP data is missing!", cam);
                 return;
+            }
 
             var myRenderer = urp.scriptableRenderer;
             if (myRenderer == null)
+            {
+                Debug.LogWarning("Failed to discover render feature: URP renderer is missing!", urp);
                 return;
+            }
 
             DiscoverRenderFeature(myRenderer, urp);
 #endif
@@ -183,11 +192,17 @@ namespace ImGuiNET.Unity
             // our List<ScriptableRendererFeature> m_RendererFeatures field is private, so we need to use reflection to access it
             var rendererFeaturesField = typeof(ScriptableRenderer).GetField("m_RendererFeatures", BindingFlags.NonPublic | BindingFlags.Instance);
             if (rendererFeaturesField == null)
+            {
+                Debug.LogError("Failed to discover render feature: m_RendererFeatures field is missing!", obj);
                 return;
+            }
             
             var rendererFeatures = (List<ScriptableRendererFeature>)rendererFeaturesField.GetValue(myRenderer);
             if (rendererFeatures == null)
+            {
+                Debug.LogError("Failed to discover render feature: m_RendererFeatures is null!", obj);
                 return;
+            }
 
             for (var index0 = 0; index0 < rendererFeatures.Count; index0++)
             {
@@ -209,14 +224,12 @@ namespace ImGuiNET.Unity
             if (Instance != this)
                 return;
             
+            Buffer = RenderUtils.GetCommandBuffer(CommandBufferTag);
+            
             // Discover an SRP type.
             _srpType = RenderUtils.GetSRP();
             Debug.Log($"Dear ImGui is enabled. SRP: {_srpType}", this);
             
-            // Discover render feature.
-            if (renderFeature == null)
-                DiscoverRenderFeature();
-
             switch (renderingMode)
             {
                 case RenderingMode.DirectlyToCamera:
@@ -229,9 +242,12 @@ namespace ImGuiNET.Unity
                     throw new ArgumentOutOfRangeException();
             }
             
+            // Discover render feature.
+            if (renderFeature == null)
+                DiscoverRenderFeature();
+            
             // Setup command buffer.
             var cam = GetCamera();
-            Buffer = RenderUtils.GetCommandBuffer(CommandBufferTag);
             switch (_srpType)
             {
                 case SRPType.BuiltIn:
@@ -316,6 +332,7 @@ namespace ImGuiNET.Unity
                 };
                 obj.transform.SetParent(transform);
                 _myScreenSpaceCanvas = obj.AddComponent<ImGuiScreenSpaceCanvas>();
+                _myScreenSpaceCanvas.Setup();
             }
         }
         
