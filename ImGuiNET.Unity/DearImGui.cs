@@ -404,7 +404,11 @@ namespace ImGuiNET.Unity
         {
             OnImguiUpdate?.Invoke();
             if (!ShouldRender())
+            {
+                // Clear the buffer if we're not rendering.
+                Buffer.Clear();
                 return;
+            }
             
             if (Instance != this)
                 return;
