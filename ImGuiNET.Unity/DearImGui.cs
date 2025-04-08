@@ -402,7 +402,6 @@ namespace ImGuiNET.Unity
         
         private void Update()
         {
-            OnImguiUpdate?.Invoke();
             if (!ShouldRender())
             {
                 // Clear the buffer if we're not rendering.
@@ -453,7 +452,12 @@ namespace ImGuiNET.Unity
             _renderer.RenderDrawLists(Buffer, ImGui.GetDrawData());
             s_drawListPerfMarker.End();
         }
-        
+
+        private void LateUpdate()
+        {
+            OnImguiUpdate?.Invoke();
+        }
+
         private void SetRenderer(IImGuiRenderer renderer, ImGuiIOPtr io)
         {
             _renderer?.Shutdown(io);
