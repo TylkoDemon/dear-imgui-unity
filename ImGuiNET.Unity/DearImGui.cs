@@ -449,13 +449,14 @@ namespace ImGuiNET.Unity
 
             s_drawListPerfMarker.Begin(this);
             Buffer.Clear();
+            Buffer.ClearRenderTarget(false, true, Color.clear);
             _renderer.RenderDrawLists(Buffer, ImGui.GetDrawData());
             s_drawListPerfMarker.End();
         }
 
         private void LateUpdate()
         {
-            OnImguiUpdate?.Invoke();
+         
         }
 
         private void SetRenderer(IImGuiRenderer renderer, ImGuiIOPtr io)
