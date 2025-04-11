@@ -1,4 +1,5 @@
-﻿using UnityEngine.Rendering;
+﻿using UnityEngine;
+using UnityEngine.Rendering;
 
 #if USING_URP
 using UnityEngine.Rendering.Universal;
@@ -37,6 +38,8 @@ namespace ImGuiNET.Unity
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             if (commandBuffer == null) return;
+            if (renderingData.cameraData.cameraType != CameraType.Game)
+                return;
             _executeCommandBufferPass.renderPassEvent = renderPassEvent;
             _executeCommandBufferPass.cmd = commandBuffer;
             renderer.EnqueuePass(_executeCommandBufferPass);
