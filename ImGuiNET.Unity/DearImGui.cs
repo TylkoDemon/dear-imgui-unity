@@ -402,6 +402,8 @@ namespace ImGuiNET.Unity
         
         private void Update()
         {
+            OnImguiUpdate?.Invoke();
+            
             if (!ShouldRender())
             {
                 // Clear the buffer if we're not rendering.
@@ -456,7 +458,7 @@ namespace ImGuiNET.Unity
 
         private void LateUpdate()
         {
-         
+            
         }
 
         private void SetRenderer(IImGuiRenderer renderer, ImGuiIOPtr io)
