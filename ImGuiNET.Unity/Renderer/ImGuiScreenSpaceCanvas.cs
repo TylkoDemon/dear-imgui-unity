@@ -63,20 +63,17 @@ namespace ImGuiNET.Unity
             }
             
             // Create the render texture
-            myCamera.targetTexture = renderTexture = new RenderTexture(Screen.width, Screen.height, 0, GraphicsFormat.R16G16B16A16_SFloat)
+            myCamera.targetTexture = renderTexture = new RenderTexture(Screen.width, Screen.height, 16, GraphicsFormat.R16G16B16A16_SFloat)
             {
                 name = "ImGui Screen-Space Canvas",
                 hideFlags = HideFlags.DontSave
             };
             
+            // Clear the render texture
             var rt = RenderTexture.active;
             RenderTexture.active = renderTexture;
             GL.Clear(true, true, Color.clear);
             RenderTexture.active = rt;
-
-            var buffer = DearImGui.Buffer;
-            Assert.IsNotNull(buffer, "buffer != null");
-            myCamera.AddCommandBuffer(CameraEvent.AfterEverything, buffer);
             
             // Create canvas.
             var canvasObject = new GameObject("Screen-Space ImGui Canvas")

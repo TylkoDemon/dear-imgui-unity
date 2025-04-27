@@ -62,8 +62,6 @@ namespace ImGuiNET.Unity
         private IImGuiPlatform _platform;
         private SRPType _srpType;
         
-        public static CommandBuffer Buffer { get; private set; }
-
         [Header("System")] 
         [FormerlySerializedAs("camera")]
         [SerializeField] private Camera defaultCamera = default!;
@@ -93,12 +91,7 @@ namespace ImGuiNET.Unity
         [SerializeField] private StyleAsset style = null!;
         [FormerlySerializedAs("_cursorShapes")] 
         [SerializeField] private CursorShapesAsset cursorShapes = null!;
-
-        private const string CommandBufferTag = "DearImGui";
-        private static readonly ProfilerMarker s_prepareFramePerfMarker = new("DearImGui.PrepareFrame");
-        private static readonly ProfilerMarker s_layoutPerfMarker = new("DearImGui.Layout");
-        private static readonly ProfilerMarker s_drawListPerfMarker = new("DearImGui.RenderDrawLists");
-
+        
         private bool _myCameraIsDirty;
         
         private Camera _myPreviousCamera;
@@ -224,8 +217,6 @@ namespace ImGuiNET.Unity
             if (Instance != this)
                 return;
             
-            Buffer = RenderUtils.GetCommandBuffer(CommandBufferTag);
-            
             // Discover an SRP type.
             _srpType = RenderUtils.GetSRP();
             Debug.Log($"Dear ImGui is enabled. SRP: {_srpType}", this);
@@ -251,12 +242,10 @@ namespace ImGuiNET.Unity
             switch (_srpType)
             {
                 case SRPType.BuiltIn:
-                    Assert.IsNotNull(cam, "camera != null");
-                    cam.AddCommandBuffer(CameraEvent.AfterEverything, Buffer);
+                    throw new NotImplementedException("Built-in SRP is no longer supported. Only URP's Render Graph is supported.");
                     break;
                 case SRPType.URP:
                     Assert.IsNotNull(renderFeature, "renderFeature != null");
-                    renderFeature.commandBuffer = Buffer;
                     break;
                 case SRPType.HDRP:
                     // NOTE: HDRP consumes Buffer locally via OnAfterUI event. 
@@ -358,14 +347,8 @@ namespace ImGuiNET.Unity
             switch (_srpType)
             {
                 case SRPType.BuiltIn:
-                    if (_myPreviousCamera != null)
-                        _myPreviousCamera.RemoveCommandBuffer(CameraEvent.AfterEverything, Buffer);
-                    if (cam != null)
-                        cam.RemoveCommandBuffer(CameraEvent.AfterEverything, Buffer);
                     break;
                 case SRPType.URP:
-                    if (renderFeature != null)
-                        renderFeature.commandBuffer = null;
                     break;
                 case SRPType.HDRP:
                     break;
@@ -375,10 +358,6 @@ namespace ImGuiNET.Unity
             
             if (_myScreenSpaceCanvas != null)
                 _myScreenSpaceCanvas.gameObject.SetActive(false);
-            
-            if (Buffer != null)
-                RenderUtils.ReleaseCommandBuffer(Buffer);
-            Buffer = null;
 
             _myPreviousCamera = defaultCamera;
             _myCameraIsDirty = false;
@@ -403,64 +382,8 @@ namespace ImGuiNET.Unity
         private void Update()
         {
             OnImguiUpdate?.Invoke();
-            
-            if (!ShouldRender())
-            {
-                // Clear the buffer if we're not rendering.
-                Buffer.Clear();
-                return;
-            }
-            
-            if (Instance != this)
-                return;
-
-            if (_myCameraIsDirty)
-            {
-                _myCameraIsDirty = false;
-                Reload();
-                return;
-            }
-
-            var cam = GetCamera();
-            if (cam == null)
-            {
-                Debug.LogError("Camera reference is missing, please assign a camera to the DearImGui component.", this);
-                enabled = false;
-                return;
-            }
-            
-            ImGuiUn.SetUnityContext(_context);
-            ImGuiIOPtr io = ImGui.GetIO();
-            
-            s_prepareFramePerfMarker.Begin(this);
-            _context.textures.PrepareFrame(io);
-            _platform.PrepareFrame(io, cam.pixelRect);
-            ImGui.NewFrame();
-            s_prepareFramePerfMarker.End();
-
-            s_layoutPerfMarker.Begin(this);
-            try
-            {
-                ImGuiUn.DoLayout();
-            }
-            finally
-            {
-                ImGui.Render();
-                s_layoutPerfMarker.End();
-            }
-
-            s_drawListPerfMarker.Begin(this);
-            Buffer.Clear();
-            Buffer.ClearRenderTarget(false, true, Color.clear);
-            _renderer.RenderDrawLists(Buffer, ImGui.GetDrawData());
-            s_drawListPerfMarker.End();
         }
-
-        private void LateUpdate()
-        {
-            
-        }
-
+        
         private void SetRenderer(IImGuiRenderer renderer, ImGuiIOPtr io)
         {
             _renderer?.Shutdown(io);
@@ -493,6 +416,34 @@ namespace ImGuiNET.Unity
         {
             ImGuiUn.Reset();
             OnImguiUpdate = null;
+        }
+        
+        internal static bool IsReadyToDraw()
+        {
+            if (Instance == null)
+                return false;
+            return Instance._context != null && Instance._renderer != null && Instance._platform != null && Instance.enabled;
+        }
+        
+        internal static ImGuiUnityContext GetContext()
+        {
+            if (Instance == null)
+                throw new Exception("DearImGui instance is null");
+            return Instance._context;
+        }
+        
+        internal static IImGuiPlatform GetPlatform()
+        {
+            if (Instance == null)
+                throw new Exception("DearImGui instance is null");
+            return Instance._platform;
+        }
+        
+        internal static IImGuiRenderer GetRenderer()
+        {
+            if (Instance == null)
+                throw new Exception("DearImGui instance is null");
+            return Instance._renderer;
         }
         
         /// <summary>
