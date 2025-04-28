@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if IMGUI_DEBUG || UNITY_EDITOR
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 
@@ -104,4 +105,5 @@ namespace ImGuiNET.Unity
         public CommandBuffer commandBuffer;
     }
 }
+#endif
 #endif
