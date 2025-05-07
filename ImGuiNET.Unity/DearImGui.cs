@@ -501,6 +501,12 @@ namespace ImGuiNET.Unity
             _drawRequests.Add(request);
         }
         
+        public static void RemoveDrawRequest([NotNull] DrawRequest request)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request)); 
+            _drawRequests.Remove(request);
+        }
+        
         public static DearImGui Instance { get; private set; }
     }
 }
