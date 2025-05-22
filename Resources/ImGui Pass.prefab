@@ -44,8 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fa779297770e0849864f782007007e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultCamera: {fileID: 0}
-  renderFeature: {fileID: 0}
   rendererType: 0
   platformType: 0
   renderingMode: 0
