@@ -50,6 +50,10 @@ The development project for the package can be found at [https://github.com/Tylk
 
 To draw Dear Imgui after Screen-Space Overlay UI, you need to use RenderingMode.IntoRenderTexture mode, which actually uses another Screen-Space Overlay canvas set to maximum render order, and draws our Imgui by using Raw Image.
 
+**While using this mode, please make sure to disable RenderImGuiFeature on your Render Feature (do not remove, just disable).**
+
+**If you don't do that, your ImGui will be rendered twice, once by the SRP and the second time by dedicated Camera for Screen-Space UI.**
+
 # Setting Up
 
 Full setup with example (draw imgui demo) of this package can be found at [https://github.com/TylkoDemon/Dear-Imgui-For-Unity](https://github.com/TylkoDemon/Dear-Imgui-For-Unity)
