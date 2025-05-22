@@ -27,10 +27,3 @@ Component Name: FreeType
 License Type: "FTL"
 
 [FreeType](https://git.savannah.gnu.org/cgit/freetype/freetype2.git/tree/docs/FTL.TXT)
-
-
-Component Name: HDRP UI Camera Stacking
-
-License Type: "MIT"
-
-[HDRP-UI-Camera-Stacking](https://github.com/alelievr/HDRP-UI-Camera-Stacking/blob/master/LICENSE)
