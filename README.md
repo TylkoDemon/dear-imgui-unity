@@ -46,18 +46,24 @@ This package uses Dear ImGui C bindings by [cimgui](https://github.com/cimgui/ci
 
 The development project for the package can be found at [https://github.com/TylkoDemon/dear-imgui-unity](https://github.com/TylkoDemon/dear-imgui-unity).
 
-Full setup with examples of this package can be found at [https://github.com/TylkoDemon/Dear-Imgui-For-Unity](https://github.com/TylkoDemon/Dear-Imgui-For-Unity)
-
-To draw IMGUI after UI in Camera-Space, this package utilizes HDRP-UI-Camera-Stacking which can be found at [https://github.com/alelievr/HDRP-UI-Camera-Stacking](https://github.com/alelievr/HDRP-UI-Camera-Stacking)
- - HDRP Feature was not tested on newer versions of Unity such as 2022 or 2023 (Unity 6) and I do not have any plans to do so.
- - The Screen-Space Overlay UI approach used for URP should work without issues tho.
- - In the future, I plan to remove the HDRP-UI-Camera-Stacking package and relay just on RenderingMode.IntoRenderTexture mode for HDRP.
-
 ### Limitation
 
 To draw Dear Imgui after Screen-Space Overlay UI, you need to use RenderingMode.IntoRenderTexture mode, which actually uses another Screen-Space Overlay canvas set to maximum render order, and draws our Imgui by using Raw Image.
-  This feature has been tested only on URP.
+
+# Setting Up
+
+Full setup with example (draw imgui demo) of this package can be found at [https://github.com/TylkoDemon/Dear-Imgui-For-Unity](https://github.com/TylkoDemon/Dear-Imgui-For-Unity)
 
 # Unity Compatibility
-This fork of dear-imgui-unity is currently developed by using `Unity 2023.2.20f1`
 
+This fork of dear-imgui-unity is currently developed by using `Unity 6000.1.1f1`
+
+Supports Render Graph and Compatibility Mode
+
+# SRPs
+
+- URP Support Only
+
+# Platforms
+
+- Windows Support Only
