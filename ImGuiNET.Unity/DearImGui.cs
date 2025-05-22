@@ -2,28 +2,20 @@
 // Project under MIT License https://github.com/TylkoDemon/dear-imgui-unity
 // 
 // A DearImgui implementation for Unity for URP, HDRP and Builtin that requires minimal setup.
-// Based on (forked from)https://github.com/realgamessoftware/dear-imgui-unity
-//  with uses ImGuiNET(https://github.com/ImGuiNET/ImGui.NET) and cimgui (https://github.com/cimgui/cimgui)
+// Based on https://github.com/realgamessoftware/dear-imgui-unity
+// Uses ImGuiNET(https://github.com/ImGuiNET/ImGui.NET) and cimgui (https://github.com/cimgui/cimgui)
 //
 //
-// In URP and Builtin, to draw DearImgui on top of Unity UI, you need to use IntoRenderTexture rendering mode.
+// To draw DearImgui on top of Unity UI, you need to use IntoRenderTexture rendering mode.
 //
 
 #if IMGUI_DEBUG || UNITY_EDITOR
+
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using JetBrains.Annotations;
-using Unity.Profiling;
 using UnityEngine;
-using UnityEngine.Assertions;
-using UnityEngine.Rendering;
 using UnityEngine.Serialization;
-using Object = UnityEngine.Object;
-
-#if USING_URP
-using UnityEngine.Rendering.Universal;
-#endif
 
 namespace ImGuiNET.Unity
 {
@@ -63,10 +55,6 @@ namespace ImGuiNET.Unity
         private SRPType _srpType;
         
         [Header("System")] 
-        [FormerlySerializedAs("camera")]
-        [SerializeField] private Camera defaultCamera = default!;
-        [FormerlySerializedAs("_renderFeature")] 
-        [SerializeField] private RenderImGuiFeature renderFeature = default!;
         [FormerlySerializedAs("_rendererType")]
         [SerializeField] private RenderUtils.RenderType rendererType = RenderUtils.RenderType.Mesh;
         [FormerlySerializedAs("_platformType")]
@@ -91,28 +79,6 @@ namespace ImGuiNET.Unity
         [SerializeField] private StyleAsset style = null!;
         [FormerlySerializedAs("_cursorShapes")] 
         [SerializeField] private CursorShapesAsset cursorShapes = null!;
-        
-        private bool _myCameraIsDirty;
-        
-        private Camera _myPreviousCamera;
-        private Camera _myCamera;
-        public Camera GetCamera()
-        {
-            if (_myScreenSpaceCanvas != null)
-                return _myScreenSpaceCanvas.GetCamera();
-            return _myCamera;
-        }
-
-        public void SetCamera([NotNull] Camera newCamera)
-        {
-            if (newCamera == null) throw new ArgumentNullException(nameof(newCamera));
-            if (_myCamera == newCamera)
-                return;
-            
-            _myPreviousCamera = _myCamera;
-            _myCamera = newCamera;
-            _myCameraIsDirty = true;
-        }
         
         private ImGuiScreenSpaceCanvas _myScreenSpaceCanvas;
         
@@ -139,78 +105,6 @@ namespace ImGuiNET.Unity
                 ImGuiUn.DestroyUnityContext(_context);
             Instance = null;
         }
-
-        /// <summary>
-        ///     Note attempts to find our render feature on currently active camera.
-        /// </summary>
-        public void DiscoverRenderFeature(Camera cam = null)
-        {
-            var srpType = RenderUtils.GetSRP();
-            if (srpType != SRPType.URP)
-            {
-                Debug.LogWarning($"Failed to discover render feature: SRP is not URP! SRP: {srpType}");
-                return;
-            }
-
-            if (cam == null)
-                cam = GetCamera();
-            if (cam == null)
-            {
-                Debug.LogWarning("Failed to discover render feature: Camera reference is missing!");
-                return;
-            }
-            
-#if USING_URP
-            UniversalAdditionalCameraData urp = cam.GetUniversalAdditionalCameraData();
-            if (urp == null)
-            {
-                Debug.LogWarning("Failed to discover render feature: URP data is missing!", cam);
-                return;
-            }
-
-            var myRenderer = urp.scriptableRenderer;
-            if (myRenderer == null)
-            {
-                Debug.LogWarning("Failed to discover render feature: URP renderer is missing!", urp);
-                return;
-            }
-
-            DiscoverRenderFeature(myRenderer, urp);
-#endif
-        }
-        
-#if USING_URP
-        public void DiscoverRenderFeature(ScriptableRenderer myRenderer, Object obj)
-        {
-            // our List<ScriptableRendererFeature> m_RendererFeatures field is private, so we need to use reflection to access it
-            var rendererFeaturesField = typeof(ScriptableRenderer).GetField("m_RendererFeatures", BindingFlags.NonPublic | BindingFlags.Instance);
-            if (rendererFeaturesField == null)
-            {
-                Debug.LogError("Failed to discover render feature: m_RendererFeatures field is missing!", obj);
-                return;
-            }
-            
-            var rendererFeatures = (List<ScriptableRendererFeature>)rendererFeaturesField.GetValue(myRenderer);
-            if (rendererFeatures == null)
-            {
-                Debug.LogError("Failed to discover render feature: m_RendererFeatures is null!", obj);
-                return;
-            }
-
-            for (var index0 = 0; index0 < rendererFeatures.Count; index0++)
-            {
-                var feature = rendererFeatures[index0];
-                if (feature is RenderImGuiFeature guiFeature)
-                {
-                    Debug.Log($"Found render feature: {guiFeature.name}", obj);
-                    renderFeature = guiFeature;
-                    return;
-                }
-            }
-
-            Debug.LogError("Failed to discover render feature: RenderImGuiFeature is missing!", obj);
-        }
-#endif
         
         private void OnEnable()
         {
@@ -224,7 +118,7 @@ namespace ImGuiNET.Unity
             switch (renderingMode)
             {
                 case RenderingMode.DirectlyToCamera:
-                    SetupDirectCamera();
+                    // Nothing to do here.
                     break;
                 case RenderingMode.IntoRenderTexture:
                     SetupCanvas();
@@ -232,27 +126,6 @@ namespace ImGuiNET.Unity
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
-            // Discover render feature.
-            if (renderFeature == null)
-                DiscoverRenderFeature();
-            
-            // Setup command buffer.
-            var cam = GetCamera();
-            switch (_srpType)
-            {
-                case SRPType.BuiltIn:
-                    throw new NotImplementedException("Built-in SRP is no longer supported. Only URP's Render Graph is supported.");
-                    break;
-                case SRPType.URP:
-                    Assert.IsNotNull(renderFeature, "renderFeature != null");
-                    break;
-                case SRPType.HDRP:
-                    // NOTE: HDRP consumes Buffer locally via OnAfterUI event. 
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }  
             
             ImGuiUn.SetUnityContext(_context);
             ImGuiIOPtr io = ImGui.GetIO();
@@ -278,33 +151,6 @@ namespace ImGuiNET.Unity
                 OnDisable();
                 enabled = false;
                 throw new Exception($"Failed to start: {reason}");
-            }
-        }
-
-        private void SetupDirectCamera()
-        {
-            // Validate if camera reference is present.
-            var cam = GetCamera();
-            if (cam == null)
-            {
-                // Camera is missing, try to discover it.
-                if (defaultCamera == null)
-                {
-                    cam = Camera.main;
-                    if (cam == null)
-                    {
-                        cam = FindObjectOfType<Camera>();
-                        if (cam == null)
-                        {
-                            Debug.LogError("No camera found, please assign a camera to the DearImGui component.");
-                            enabled = false;
-                            return;
-                        }
-                    }
-                }
-                else cam = defaultCamera;
-                SetCamera(cam);
-                _myCameraIsDirty = false;
             }
         }
 
@@ -342,25 +188,9 @@ namespace ImGuiNET.Unity
 
             _context.textures.Shutdown();
             _context.textures.DestroyFontAtlas(io);
-
-            var cam = GetCamera();
-            switch (_srpType)
-            {
-                case SRPType.BuiltIn:
-                    break;
-                case SRPType.URP:
-                    break;
-                case SRPType.HDRP:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
             
             if (_myScreenSpaceCanvas != null)
                 _myScreenSpaceCanvas.gameObject.SetActive(false);
-
-            _myPreviousCamera = defaultCamera;
-            _myCameraIsDirty = false;
         }
 
         private void OnApplicationQuit()
