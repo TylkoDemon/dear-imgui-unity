@@ -76,6 +76,7 @@ namespace ImGuiNET.Unity
                 ImGuiUn.SetUnityContext(context);
                 ImGuiIOPtr io = ImGui.GetIO();
                 
+                context.textures.PrepareFrame(io);
                 platform.PrepareFrame(io, renderingData.cameraData.camera.pixelRect);
                 ImGui.NewFrame();
                 
