@@ -13,7 +13,8 @@ namespace ImGuiNET.Unity
     public class RenderImGuiFeature : ScriptableRendererFeature
     {
         private const string profilerTag = "[Dear ImGui]";
-
+        private const string bufferPoolId = "[Dear ImGui]";
+        
         private class PassData
         {
             internal TextureHandle source;
@@ -63,6 +64,36 @@ namespace ImGuiNET.Unity
                 }
                 
                 renderer.RenderDrawLists(buffer, ImGui.GetDrawData());
+            }
+
+            public override void Execute(ScriptableRenderContext srp, ref RenderingData renderingData)
+            {
+                CommandBuffer buffer = CommandBufferPool.Get(bufferPoolId);
+                var context = DearImGui.GetContext();
+                var platform = DearImGui.GetPlatform();
+                var renderer = DearImGui.GetRenderer();
+                
+                ImGuiUn.SetUnityContext(context);
+                ImGuiIOPtr io = ImGui.GetIO();
+                
+                platform.PrepareFrame(io, renderingData.cameraData.camera.pixelRect);
+                ImGui.NewFrame();
+                
+                try
+                {
+                    ImGuiUn.DoLayout();
+                }
+                finally
+                {
+                    ImGui.Render();
+                }
+                
+                renderer.RenderDrawLists(buffer, ImGui.GetDrawData());
+                
+                // Clean up command buffer
+                srp.ExecuteCommandBuffer(buffer);
+                buffer.Clear();
+                CommandBufferPool.Release(buffer);
             }
         }
 
