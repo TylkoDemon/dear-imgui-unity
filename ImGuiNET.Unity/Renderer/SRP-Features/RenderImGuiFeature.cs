@@ -1,5 +1,6 @@
 ﻿#if IMGUI_DEBUG || UNITY_EDITOR
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 
@@ -15,9 +16,12 @@ namespace ImGuiNET.Unity
         private const string profilerTag = "[Dear ImGui]";
         private const string bufferPoolId = "[Dear ImGui]";
         
+        private static readonly int ImguiTextureId = Shader.PropertyToID("_ImGuiTexture");
+        
         private class PassData
         {
             internal TextureHandle source;
+            internal TextureHandle outputTexture;
             internal Rect pixelRect;
         }
         
@@ -30,17 +34,30 @@ namespace ImGuiNET.Unity
                     UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
                     UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
                     
+                    // Create a render texture for ImGui output
+                    var textureDesc = new TextureDesc(cameraData.camera.pixelWidth, cameraData.camera.pixelHeight)
+                    {
+                        colorFormat = GraphicsFormat.R32G32B32A32_SFloat,
+                        name = "ImGuiTexture",
+                        clearBuffer = true
+                    };
+                    var imguiTexture = renderGraph.CreateTexture(textureDesc);
+                    
                     passData.source = resourceData.cameraColor;
                     passData.pixelRect = cameraData.camera.pixelRect;
+                    passData.outputTexture = imguiTexture;
                     
                     builder.UseTexture(resourceData.cameraColor, AccessFlags.ReadWrite);
+                    builder.UseTexture(imguiTexture, AccessFlags.Write);
+                    
+                    builder.SetGlobalTextureAfterPass(imguiTexture, ImguiTextureId);
 
                     builder.AllowPassCulling(false);
                     builder.SetRenderFunc((PassData data, UnsafeGraphContext context) => ExecutePass(data, context));
                 }
             }
             
-            private void ExecutePass(PassData data, UnsafeGraphContext unsafeContext)
+            private static void ExecutePass(PassData data, UnsafeGraphContext unsafeContext)
             {
                 CommandBuffer buffer = CommandBufferHelpers.GetNativeCommandBuffer(unsafeContext.cmd);
                 var context = DearImGui.GetContext();
@@ -63,23 +80,33 @@ namespace ImGuiNET.Unity
                     ImGui.Render();
                 }
                 
+                buffer.SetRenderTarget(data.outputTexture);
                 renderer.RenderDrawLists(buffer, ImGui.GetDrawData());
             }
 
             public override void Execute(ScriptableRenderContext srp, ref RenderingData renderingData)
             {
+                var camera = renderingData.cameraData.camera;
+                var desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight, RenderTextureFormat.ARGB32, 0)
+                {
+                    sRGB = true
+                };
+                RenderTexture imguiTexture = RenderTexture.GetTemporary(desc);
                 CommandBuffer buffer = CommandBufferPool.Get(bufferPoolId);
+                
+                buffer.SetRenderTarget(imguiTexture);
+    
                 var context = DearImGui.GetContext();
                 var platform = DearImGui.GetPlatform();
                 var renderer = DearImGui.GetRenderer();
-                
+    
                 ImGuiUn.SetUnityContext(context);
                 ImGuiIOPtr io = ImGui.GetIO();
-                
+    
                 context.textures.PrepareFrame(io);
                 platform.PrepareFrame(io, renderingData.cameraData.camera.pixelRect);
                 ImGui.NewFrame();
-                
+    
                 try
                 {
                     ImGuiUn.DoLayout();
@@ -88,13 +115,14 @@ namespace ImGuiNET.Unity
                 {
                     ImGui.Render();
                 }
-                
+    
                 renderer.RenderDrawLists(buffer, ImGui.GetDrawData());
+                buffer.SetGlobalTexture(ImguiTextureId, imguiTexture);
                 
-                // Clean up command buffer
                 srp.ExecuteCommandBuffer(buffer);
                 buffer.Clear();
                 CommandBufferPool.Release(buffer);
+                RenderTexture.ReleaseTemporary(imguiTexture);
             }
         }
 

@@ -1,16 +1,12 @@
 ﻿//
 // Project under MIT License https://github.com/TylkoDemon/dear-imgui-unity
 // 
-// A DearImgui implementation for Unity for URP, HDRP and Builtin that requires minimal setup.
+// A DearImgui implementation for Unity for URP that requires minimal setup.
 // Based on https://github.com/realgamessoftware/dear-imgui-unity
 // Uses ImGuiNET(https://github.com/ImGuiNET/ImGui.NET) and cimgui (https://github.com/cimgui/cimgui)
 //
-//
-// To draw DearImgui on top of Unity UI, you need to use IntoRenderTexture rendering mode.
-//
 
 #if IMGUI_DEBUG || UNITY_EDITOR
-
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
@@ -22,27 +18,6 @@ namespace ImGuiNET.Unity
     // This component is responsible for setting up ImGui for use in Unity.
     // It holds the necessary context and sets it up before any operation is done to ImGui.
     // (e.g. set the context, texture and font managers before calling Layout)
-
-    public enum RenderingMode
-    {
-        /// <summary>
-        ///     Standard mode where Dear ImGui is rendered directly to the camera.
-        /// </summary>
-        /// <remarks>
-        ///     In this mode, if you're using Screen-Space Canvas, Dear ImGui will be drawn behind it.
-        /// </remarks>
-        DirectlyToCamera = 0,
-        
-        /// <summary>
-        ///     Experimental mode where Dear ImGui is rendered into a RenderTexture that is then drawn by
-        ///      Screen-Space Canvas to combat issues with Screen-Space Canvas.
-        /// </summary>
-        /// <remarks>
-        ///     As this process involves few extra steps and finishing the render with unity's Canvas system,
-        ///      it is overall more performance heavy.
-        /// </remarks>
-        IntoRenderTexture = 1
-    }
     
     /// <summary>
     ///     Dear ImGui integration into Unity
@@ -61,8 +36,6 @@ namespace ImGuiNET.Unity
         [SerializeField] private Platform.Type platformType = Platform.Type.InputManager;
 
         [Header("Configuration")] 
-        [SerializeField] public RenderingMode renderingMode = RenderingMode.DirectlyToCamera;
-        [SerializeField] internal int toTextureRendererIndex = 0;
         [FormerlySerializedAs("_initialConfiguration")]
         [SerializeField] private IOConfig initialConfiguration = default!;
         [FormerlySerializedAs("_fontAtlasConfiguration")]
@@ -115,18 +88,10 @@ namespace ImGuiNET.Unity
             _srpType = RenderUtils.GetSRP();
             Debug.Log($"Dear ImGui is enabled. SRP: {_srpType}", this);
             
-            switch (renderingMode)
-            {
-                case RenderingMode.DirectlyToCamera:
-                    // Nothing to do here.
-                    break;
-                case RenderingMode.IntoRenderTexture:
-                    SetupCanvas();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            // Setup canvas to draw our ImGui on top of Unity UI.
+            SetupCanvas();
             
+            // Configure ImGui context.
             ImGuiUn.SetUnityContext(_context);
             ImGuiIOPtr io = ImGui.GetIO();
 
