@@ -17,9 +17,16 @@ namespace ImGuiNET.Unity
         public static event Action After;  
         internal static void DoLayout()
         {
-            Before?.Invoke();
-            Layout?.Invoke();
-            After?.Invoke();
+            try
+            {
+                Before?.Invoke();
+                Layout?.Invoke();
+                After?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
         }
 
         internal static void Reset()
