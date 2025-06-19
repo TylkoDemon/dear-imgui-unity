@@ -2,6 +2,8 @@
 {
     Properties
     {
+        // Main tex needs to be specified for unity to stop complaining, it is otherwise useless
+        [HideInInspector] _MainTex ("Texture", 2D) = "clear" {}
         [PerRendererData] _Color ("Tint", Color) = (1,1,1,1)
     }
     SubShader
