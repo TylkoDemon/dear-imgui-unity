@@ -95,7 +95,8 @@ namespace ImGuiNET.Unity
                 CommandBuffer buffer = CommandBufferPool.Get(bufferPoolId);
                 
                 buffer.SetRenderTarget(imguiTexture);
-    
+                buffer.ClearRenderTarget(true, true, Color.clear);
+                
                 var context = DearImGui.GetContext();
                 var platform = DearImGui.GetPlatform();
                 var renderer = DearImGui.GetRenderer();
