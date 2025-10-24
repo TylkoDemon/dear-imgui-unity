@@ -45,9 +45,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rendererType: 0
-  platformType: 0
-  renderingMode: 0
-  toTextureRendererIndex: 0
+  platformType: 1
   initialConfiguration:
     KeyboardNavigation: 0
     GamepadNavigation: 0
