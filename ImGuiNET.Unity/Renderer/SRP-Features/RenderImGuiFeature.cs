@@ -35,7 +35,7 @@ namespace ImGuiNET.Unity
                     UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
                     
                     // Create a render texture for ImGui output
-                    var textureDesc = new TextureDesc(cameraData.camera.pixelWidth, cameraData.camera.pixelHeight)
+                    var textureDesc = new TextureDesc((int)cameraData.camera.pixelRect.width, (int)cameraData.camera.pixelRect.height)
                     {
                         colorFormat = GraphicsFormat.R32G32B32A32_SFloat,
                         name = "ImGuiTexture",
