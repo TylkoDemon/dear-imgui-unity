@@ -172,7 +172,7 @@ namespace ImGuiNET.Unity
 
             io.MousePos = ImGuiUn.ScreenToImGui(mouse.position.ReadValue());
 
-            Vector2 mouseScroll = mouse.scroll.ReadValue() / 120f;
+            Vector2 mouseScroll = mouse.scroll.ReadValue();
             io.MouseWheel   = mouseScroll.y;
             io.MouseWheelH  = mouseScroll.x;
 
