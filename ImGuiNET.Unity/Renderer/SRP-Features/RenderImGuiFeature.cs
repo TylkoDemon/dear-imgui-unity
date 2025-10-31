@@ -37,7 +37,7 @@ namespace ImGuiNET.Unity
                     // Create a render texture for ImGui output
                     var textureDesc = new TextureDesc((int)cameraData.camera.pixelRect.width, (int)cameraData.camera.pixelRect.height)
                     {
-                        colorFormat = GraphicsFormat.R32G32B32A32_SFloat,
+                        colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
                         name = "ImGuiTexture",
                         clearBuffer = true
                     };
