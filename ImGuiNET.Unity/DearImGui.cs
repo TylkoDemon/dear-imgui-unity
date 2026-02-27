@@ -174,7 +174,7 @@ namespace ImGuiNET.Unity
             OnEnable();
         }
         
-        private void Update()
+        public void SystemUpdate()
         {
             OnImguiUpdate?.Invoke();
         }
