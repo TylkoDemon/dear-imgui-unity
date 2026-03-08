@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if IMGUI_DEBUG || UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -116,3 +117,4 @@ namespace ImGuiNET.Unity
 #endif
     }
 }
+#endif
