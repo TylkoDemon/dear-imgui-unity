@@ -84,6 +84,7 @@ namespace ImGuiNET.Unity
                 renderer.RenderDrawLists(buffer, ImGui.GetDrawData());
             }
 
+#if !UNITY_6000_4_OR_NEWER
             public override void Execute(ScriptableRenderContext srp, ref RenderingData renderingData)
             {
                 var camera = renderingData.cameraData.camera;
@@ -125,6 +126,7 @@ namespace ImGuiNET.Unity
                 CommandBufferPool.Release(buffer);
                 RenderTexture.ReleaseTemporary(imguiTexture);
             }
+#endif
         }
 
         ExecuteCommandBufferPass _executeCommandBufferPass;
@@ -152,10 +154,12 @@ namespace ImGuiNET.Unity
             renderer.EnqueuePass(_executeCommandBufferPass);
         }
 
+#if !UNITY_6000_4_OR_NEWER
         public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
         {
             _executeCommandBufferPass.ConfigureInput(ScriptableRenderPassInput.Color | ScriptableRenderPassInput.Depth);
         }
+#endif
     }
 }
 #else
