@@ -20,7 +20,8 @@ To draw Dear Imgui after Screen-Space Overlay UI, we use another Screen-Space Ov
 
 # Setting Up
 
-Full setup with example (draw imgui demo) of this package can be found at [https://github.com/TylkoDemon/Dear-Imgui-For-Unity](https://github.com/TylkoDemon/Dear-Imgui-For-Unity)
+- Full setup with example (draw imgui demo) of this package can be found at [https://github.com/TylkoDemon/Dear-Imgui-For-Unity](https://github.com/TylkoDemon/Dear-Imgui-For-Unity)
+- You need to define `IMGUI_DEBUG` in your Project Settings.
 
 # Unity Compatibility
 
