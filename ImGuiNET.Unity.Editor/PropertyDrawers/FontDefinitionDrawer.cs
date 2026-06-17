@@ -59,7 +59,7 @@ namespace ImGuiNET.Unity.Editor
         string GetStreamingAssetPath(SerializedProperty property)
         {
             string path = property.objectReferenceValue != null
-                ? AssetDatabase.GetAssetPath(property.objectReferenceValue.GetInstanceID())
+                ? AssetDatabase.GetAssetPath(property.objectReferenceValue.GetEntityId())
                 : string.Empty;
             return path.StartsWith(EditorStreamingAssetsPath) ? path.Substring(EditorStreamingAssetsPath.Length) : string.Empty;
         }
