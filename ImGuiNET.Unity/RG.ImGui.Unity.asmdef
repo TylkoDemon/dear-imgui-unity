@@ -44,7 +44,7 @@
         },
         {
             "name": "com.unity.cinemachine",
-            "expression": "",
+            "expression": "3.0.0",
             "define": "USING_CINEMACHINE"
         }
     ],
