@@ -15,6 +15,7 @@ namespace ImGuiNET.Unity
         public static event Action Before; 
         public static event Action Layout; 
         public static event Action After;  
+        public static event Action Foreground;
         internal static void DoLayout()
         {
             try
@@ -22,6 +23,7 @@ namespace ImGuiNET.Unity
                 Before?.Invoke();
                 Layout?.Invoke();
                 After?.Invoke();
+                Foreground?.Invoke();
             }
             catch (Exception ex)
             {
@@ -34,6 +36,7 @@ namespace ImGuiNET.Unity
             Before = default;
             Layout = default;
             After = default;
+            Foreground = default;
         }
         
         // textures

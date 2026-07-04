@@ -118,6 +118,10 @@ namespace ImGuiNET.Unity
                 io.KeyMap[(int)ImGuiKey.Space      ] = (int)KeyCode.Space,
                 io.KeyMap[(int)ImGuiKey.Enter      ] = (int)KeyCode.Return,
                 io.KeyMap[(int)ImGuiKey.Escape     ] = (int)KeyCode.Escape,
+                io.KeyMap[(int)ImGuiKey.F1         ] = (int)KeyCode.F1,
+                io.KeyMap[(int)ImGuiKey.F2         ] = (int)KeyCode.F2,
+                io.KeyMap[(int)ImGuiKey.F3         ] = (int)KeyCode.F3,
+                io.KeyMap[(int)ImGuiKey.F4         ] = (int)KeyCode.F4,
                 // io.KeyMap[(int)ImGuiKey.KeyPadEnter] = (int)KeyCode.KeypadEnter,
                 io.KeyMap[(int)ImGuiKey.A          ] = (int)KeyCode.A,           // for text edit CTRL+A: select all
                 io.KeyMap[(int)ImGuiKey.C          ] = (int)KeyCode.C,           // for text edit CTRL+C: copy

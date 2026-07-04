@@ -129,6 +129,10 @@ namespace ImGuiNET.Unity
                 io.KeyMap[(int)ImGuiKey.Space      ] = (int)Key.Space,
                 io.KeyMap[(int)ImGuiKey.Enter      ] = (int)Key.Enter,
                 io.KeyMap[(int)ImGuiKey.Escape     ] = (int)Key.Escape,
+                io.KeyMap[(int)ImGuiKey.F1         ] = (int)Key.F1,
+                io.KeyMap[(int)ImGuiKey.F2         ] = (int)Key.F2,
+                io.KeyMap[(int)ImGuiKey.F3         ] = (int)Key.F3,
+                io.KeyMap[(int)ImGuiKey.F4         ] = (int)Key.F4,
                 io.KeyMap[(int)ImGuiKey.KeypadEnter] = (int)Key.NumpadEnter,
                 // letter keys mapped by display name to avoid being layout agnostic (used as shortcuts)
                 io.KeyMap[(int)ImGuiKey.A          ] = (int)((KeyControl)kb["#(a)"]).keyCode, // for text edit CTRL+A: select all
