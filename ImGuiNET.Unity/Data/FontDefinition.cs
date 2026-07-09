@@ -6,7 +6,9 @@ namespace ImGuiNET.Unity
     [System.Serializable]
     struct FontDefinition
     {
-        [SerializeField] Object _fontAsset; // to drag'n'drop file from the inspector
+        [Tooltip("Font file imported as a TextAsset (e.g. a .bytes file). Loaded from memory; takes precedence over FontPath.")]
+        public TextAsset FontData;
+        [Tooltip("Path to a font file under StreamingAssets. Used only when FontData is not set.")]
         public string FontPath;
         public FontConfig Config;
     }

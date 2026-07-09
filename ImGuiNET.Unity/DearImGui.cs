@@ -100,10 +100,20 @@ namespace ImGuiNET.Unity
                 io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
             
             initialConfiguration.ApplyTo(io);
-            if (style != null)
-                style.ApplyTo(ImGui.GetStyle());
 
-            _context.textures.BuildFontAtlas(io, fontAtlasConfiguration);
+            // Rasterize the atlas at the display scale and scale style metrics, rather than upscaling a
+            // fixed-size atlas through FontGlobalScale (which blurs). Keep FontGlobalScale at 1.
+            float dpiScale = GetDpiScale();
+            io.FontGlobalScale = 1f;
+
+            if (style != null)
+            {
+                style.ApplyTo(ImGui.GetStyle());
+                if (dpiScale != 1f)
+                    ImGui.GetStyle().ScaleAllSizes(dpiScale);
+            }
+
+            _context.textures.BuildFontAtlas(io, fontAtlasConfiguration, dpiScale);
             _context.textures.Initialize(io);
 
             SetPlatform(Platform.Create(platformType, cursorShapes, iniSettings), io);
@@ -191,6 +201,14 @@ namespace ImGuiNET.Unity
             _platform?.Shutdown(io);
             _platform = platform;
             _platform?.Initialize(io);
+        }
+
+        private static float GetDpiScale()
+        {
+            float dpi = Screen.dpi;
+            if (dpi <= 0f)
+                return 1f;
+            return Mathf.Clamp(dpi / 96f, 1f, 3f);
         }
         
         public static bool ShouldRender()

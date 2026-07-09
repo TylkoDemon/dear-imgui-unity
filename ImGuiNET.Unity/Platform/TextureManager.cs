@@ -22,6 +22,7 @@ namespace ImGuiNET.Unity
         readonly Dictionary<Texture, int> _textureIds = new Dictionary<Texture, int>();
         readonly Dictionary<Sprite, SpriteInfo> _spriteData = new Dictionary<Sprite, SpriteInfo>();
         readonly HashSet<IntPtr> _allocatedGlyphRangeArrays = new HashSet<IntPtr>(IntPtrEqualityComparer.Instance);
+        readonly HashSet<IntPtr> _allocatedFontDataArrays = new HashSet<IntPtr>(IntPtrEqualityComparer.Instance);
 
         public void PrepareFrame(ImGuiIOPtr io)
         {
@@ -90,8 +91,26 @@ namespace ImGuiNET.Unity
             _allocatedGlyphRangeArrays.Clear();
         }
 
-        public void BuildFontAtlas(ImGuiIOPtr io, in FontAtlasConfigAsset settings)
+        unsafe IntPtr AllocateFontData(byte[] bytes)
         {
+            byte* buffer = (byte*)Util.Allocate(bytes.Length);
+            _allocatedFontDataArrays.Add((IntPtr)buffer);
+            System.Runtime.InteropServices.Marshal.Copy(bytes, 0, (IntPtr)buffer, bytes.Length);
+            return (IntPtr)buffer;
+        }
+
+        unsafe void FreeFontDataArrays()
+        {
+            foreach (var buffer in _allocatedFontDataArrays)
+                Util.Free((byte*)buffer);
+            _allocatedFontDataArrays.Clear();
+        }
+
+        public void BuildFontAtlas(ImGuiIOPtr io, in FontAtlasConfigAsset settings, float fontScale = 1f)
+        {
+            if (fontScale <= 0f)
+                fontScale = 1f;
+
             if (io.Fonts.IsBuilt())
                 DestroyFontAtlas(io);
 
@@ -110,6 +129,29 @@ namespace ImGuiNET.Unity
             // add fonts from config asset
             foreach (var fontDefinition in settings.Fonts)
             {
+                // Prefer a directly-referenced font asset (loaded from memory) over a StreamingAssets file path.
+                if (fontDefinition.FontData != null)
+                {
+                    byte[] fontBytes = fontDefinition.FontData.bytes;
+                    if (fontBytes == null || fontBytes.Length == 0)
+                    {
+                        Debug.LogWarning($"Font asset '{fontDefinition.FontData.name}' has no data.");
+                        continue;
+                    }
+
+                    var memConfig = new ImFontConfig();
+                    var memConfigPtr = new ImFontConfigPtr(ref memConfig);
+                    fontDefinition.Config.ApplyTo(memConfigPtr);
+                    memConfigPtr.FontDataOwnedByAtlas = false;
+                    memConfigPtr.GlyphRanges = AllocateGlyphRangeArray(fontDefinition.Config);
+                    IntPtr fontDataPtr = AllocateFontData(fontBytes);
+                    io.Fonts.AddFontFromMemoryTTF(fontDataPtr, fontBytes.Length, fontDefinition.Config.SizeInPixels * fontScale, memConfigPtr);
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(fontDefinition.FontPath))
+                    continue;
+
                 var fontPath = System.IO.Path.Combine(Application.streamingAssetsPath, fontDefinition.FontPath);
                 if (!System.IO.File.Exists(fontPath))
                 {
@@ -121,7 +163,7 @@ namespace ImGuiNET.Unity
                 var fontConfigPtr = new ImFontConfigPtr(ref fontConfig);
                 fontDefinition.Config.ApplyTo(fontConfigPtr);
                 fontConfigPtr.GlyphRanges = AllocateGlyphRangeArray(fontDefinition.Config);
-                io.Fonts.AddFontFromFileTTF(fontPath, fontDefinition.Config.SizeInPixels, fontConfigPtr);
+                io.Fonts.AddFontFromFileTTF(fontPath, fontDefinition.Config.SizeInPixels * fontScale, fontConfigPtr);
             }
 
             if (io.Fonts.Fonts.Size == 0)
@@ -147,6 +189,7 @@ namespace ImGuiNET.Unity
         public unsafe void DestroyFontAtlas(ImGuiIOPtr io)
         {
             FreeGlyphRangeArrays();
+            FreeFontDataArrays();
 
             io.Fonts.Clear(); // previous FontDefault reference no longer valid
             io.NativePtr->FontDefault = default; // NULL uses Fonts[0]
@@ -170,7 +213,7 @@ namespace ImGuiNET.Unity
         unsafe Texture2D CreateAtlasTexture(ImFontAtlasPtr atlas)
         {
             atlas.GetTexDataAsRGBA32(out byte* pixels, out int width, out int height, out int bytesPerPixel);
-            var atlasTexture = new Texture2D(width, height, TextureFormat.RGBA32, false, false) { filterMode = FilterMode.Point };
+            var atlasTexture = new Texture2D(width, height, TextureFormat.RGBA32, false, false) { filterMode = FilterMode.Bilinear };
 
             NativeArray<byte> srcData = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<byte>(
                 (void*)pixels, width * height * bytesPerPixel, Allocator.None);
